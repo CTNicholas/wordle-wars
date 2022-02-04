@@ -1,8 +1,32 @@
+html, body, #app {
+  position: absolute;
+  top: 0;
+  left: 0;
+  right: 0;
+  bottom: 0;
+}
+
+*, *:before, *:after {
+  box-sizing: border-box;
+}
+
+#app {
+  display: flex;
+  flex-direction: column;
+  align-items: stretch;
+  justify-content: space-between;
+  padding-bottom: 2px;
+}
+
 body {
   font-family: 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
   text-align: center;
   max-width: 500px;
   margin: 0 auto;
+}
+
+input, button {
+  font: inherit;
 }
 
 h1 {

@@ -1,3 +1,16 @@
+export type OtherScore = {
+  correct: number
+  present: number
+  absent: number
+}
+
+export type OtherUser = {
+  name: string
+  ready: boolean
+  board: string
+  score: OtherScore
+}
+
 export const enum LetterState {
   INITIAL = 0,
   CORRECT = 'correct',
@@ -14,3 +27,9 @@ export const enum GameState {
   PLAYING = 'playing',
   COMPLETE = 'complete'
 }
+
+export type GameEmitProps = {
+  letterStates: LettersGuessed
+  letterBoard: string
+}
+

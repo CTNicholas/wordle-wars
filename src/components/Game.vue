@@ -2,10 +2,10 @@
 import { onUnmounted, watch } from 'vue'
 import { allWords, getWordOfTheDay } from '../lib/words'
 import Keyboard from './Keyboard.vue'
-import { LettersGuessed, LetterState } from '../types'
+import { GameEmitProps, LettersGuessed, LetterState } from '../types'
 
 const emit = defineEmits<{
-  (e: 'lettersGuessed', key: LettersGuessed): void
+  (e: 'lettersGuessed', key: GameEmitProps): void
 }>()
 
 // Get word of the day
@@ -36,7 +36,7 @@ const letterStates: LettersGuessed = $ref({})
 
 // Emit event on letterStates change
 watch(letterStates, () => {
-  emit('lettersGuessed', letterStates)
+  emit('lettersGuessed', { letterStates: letterStates, letterBoard: genResultGrid() })
 })
 
 // Handle keyboard input.
