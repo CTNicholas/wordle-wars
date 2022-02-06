@@ -9,6 +9,7 @@ export type OtherUser = {
   ready: boolean
   board: string
   score: OtherScore
+  position: number
 }
 
 export const enum LetterState {
@@ -33,8 +34,12 @@ export type LetterBoard = {
   state: LetterState[][]
 }
 
-export type GameEmitProps = {
+export type LettersGuessedProps = {
   letterBoard: LetterBoard
   letterStates: LettersGuessed
 }
 
+export type GameCompleteProps = {
+  success: boolean,
+  successGrid?: string
+}

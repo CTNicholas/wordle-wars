@@ -2,10 +2,11 @@
 import { onUnmounted, watch } from 'vue'
 import { allWords, getWordOfTheDay } from '../lib/words'
 import Keyboard from './Keyboard.vue'
-import { GameEmitProps, LettersGuessed, LetterState } from '../types'
+import { GameCompleteProps, LettersGuessedProps, LettersGuessed, LetterState } from '../types'
 
 const emit = defineEmits<{
-  (e: 'lettersGuessed', key: GameEmitProps): void
+  (e: 'lettersGuessed', key: LettersGuessedProps): void
+  (e: 'gameComplete', key: GameCompleteProps): void
 }>()
 
 // Get word of the day
@@ -34,11 +35,6 @@ let success = $ref(false)
 
 // Keep track of revealed letters for the virtual keyboard
 const letterStates: LettersGuessed = $ref({})
-
-// Emit event on letterStates change
-watch(letterStates, () => {
-  emit('lettersGuessed', { letterStates: letterStates, letterBoard: board })
-})
 
 // Handle keyboard input.
 let allowInput = true
@@ -117,6 +113,9 @@ function completeRow () {
       }
     })
 
+    // Emit lettersGuessed event to parent
+    emit('lettersGuessed', { letterStates: letterStates, letterBoard: board })
+
     allowInput = false
     if (currentRow.every((tile) => tile.state === LetterState.CORRECT)) {
       // yay!
@@ -128,6 +127,7 @@ function completeRow () {
           ],
           -1
         )
+        emit('gameComplete', { success: true, successGrid: grid })
         success = true
       }, 1600)
     } else if (currentRowIndex < board.length - 1) {
@@ -140,6 +140,7 @@ function completeRow () {
       // game over :(
       setTimeout(() => {
         showMessage(answer.toUpperCase(), -1)
+        emit('gameComplete', { success: false })
       }, 1600)
     }
   } else {
@@ -232,7 +233,7 @@ function genResultGrid () {
 
 <style scoped>
 #board-wrapper {
-  --border-radius: 2px;
+  --border-radius: 4px;
 
   display: flex;
   width: 100%;

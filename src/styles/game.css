@@ -52,13 +52,16 @@ header {
 }
 
 .correct {
-  background-color: #6aaa64 !important;
+  //background-color: #6aaa64 !important;
+  background-color: #1bb238 !important;
 }
 
 .present {
-  background-color: #c9b458 !important;
+  //background-color: #c9b458 !important;
+  background-color: #d2a207 !important;
 }
 
 .absent {
-  background-color: #787c7e !important;
+  //background-color: #787c7e !important;
+  background-color: #82918b !important;
 }

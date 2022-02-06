@@ -12,7 +12,7 @@ const roomId = createRoomId()
 
 <script setup lang="ts">
 import { onUnmounted } from 'vue'
-import { GameEmitProps, GameState, OtherScore, OtherUser } from './types'
+import { LettersGuessedProps, GameState, OtherScore, OtherUser, GameCompleteProps } from './types'
 import Game from './components/Game.vue'
 import { Others, Presence, Room } from '@liveblocks/client'
 import MiniBoard from './components/MiniBoard.vue'
@@ -39,11 +39,17 @@ let unsubscribePresence = $ref(() => {})
 let unsubscribeOthers = $ref(() => {})
 
 // Create room with random ID, watch for other user changes
-function createRoom () {
+function enterRoom () {
   room = client.enter('wordle-wars-' + roomId)
   unsubscribePresence = room.subscribe('my-presence', onMyPresenceChange)
   unsubscribeOthers = room.subscribe('others', onOthersChange)
-  room.updatePresence({ name: username, ready: false, board: '', score: {} })
+  room.updatePresence({
+    name: username,
+    ready: false,
+    board: '',
+    score: {},
+    position: 0
+  })
   gameState = GameState.WAITING
   localStorage.setItem('username', username)
 }
@@ -62,7 +68,6 @@ function onMyPresenceChange (updatedPresence: any) {
 }
 
 function onOthersChange (updatedOthers: Others<OtherUser>) {
-  console.log(updatedOthers.toArray())
   others = updatedOthers
   gameEvents[gameState]?.()
 }
@@ -75,12 +80,19 @@ function allAreReady () {
   return myPresence.ready && othersReady
 }
 
-function onLettersGuessed ({ letterStates, letterBoard }: GameEmitProps ) {
+function onLettersGuessed ({ letterStates, letterBoard }: LettersGuessedProps) {
   const currentScore: OtherScore|any = { correct: 0, present: 0, absent: 0 }
   Object.values(letterStates).forEach(state => {
     currentScore[state] += 1
   })
   room.updatePresence({ score: currentScore, board: letterBoard })
+}
+
+function onGameComplete ({ success, successGrid }: GameCompleteProps) {
+  if (success) {
+
+  }
+  gameState = GameState.COMPLETE
 }
 
 // Unsubscribe room if unmounted
@@ -105,7 +117,7 @@ onUnmounted(() => {
 
   <div v-if="gameState === GameState.INTRO" id="intro">
     <h2>Intro</h2>
-    <form @submit.prevent="createRoom">
+    <form @submit.prevent="enterRoom">
       <label for="set-username">Username</label>
       <input type="text" id="set-username" v-model="username" autocomplete="off" required />
       <input type="submit" value="Join room" />
@@ -134,30 +146,30 @@ onUnmounted(() => {
     </div>
   </div>
 
-  <div v-if="gameState === GameState.PLAYING" id="playing">
+  <div v-if="gameState === GameState.PLAYING || gameState === GameState.COMPLETE" id="playing">
     <div class="mini-score-container">
       <MiniScore v-for="other in othersPresence" :user="other" />
     </div>
-    <Game @lettersGuessed="onLettersGuessed">
+    <Game @lettersGuessed="onLettersGuessed" @gameComplete="onGameComplete">
       <template v-slot:board-left>
         <div class="mini-board-container">
-          <MiniBoard v-for="other in othersFilterOdd(true)" :user="other" />
+          <MiniBoard v-for="other in othersFilterOdd(true)" :user="other" :showLetters="gameState === GameState.COMPLETE"/>
         </div>
       </template>
       <template v-slot:board-right>
         <div class="mini-board-container">
-          <MiniBoard  v-for="other in othersFilterOdd(false)" :user="other" />
+          <MiniBoard v-for="other in othersFilterOdd(false)" :user="other" :showLetters="gameState === GameState.COMPLETE"/>
         </div>
       </template>
     </Game>
   </div>
-
-  <div v-if="gameState === GameState.COMPLETE" id="complete">
-    complete
-  </div>
 </template>
 
 <style>
+h1 {
+  letter-spacing: 3px;
+}
+
 #intro, #waiting, #complete, #playing {
   display: flex;
   flex-direction: column;
@@ -175,7 +187,7 @@ onUnmounted(() => {
   display: flex;
   justify-content: center;
   align-items: center;
-  gap: 10px;
+  gap: 15px;
   margin-bottom: 20px;
 }
 

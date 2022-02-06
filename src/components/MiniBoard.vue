@@ -1,8 +1,9 @@
 <script setup lang="ts">
 import { LetterState, OtherUser } from '../types'
 
-const { user } = defineProps<{
-  user: OtherUser
+const { user, showLetters = false } = defineProps<{
+  user: OtherUser,
+  showLetters: boolean
 }>()
 
 const emptyBoard = $ref(
@@ -36,9 +37,7 @@ const currentBoard = $computed(() => {
           v-for="(tile, index) in row"
           :class="['mini-board-tile', tile.state && 'revealed']"
         >
-          <div class="front mini-board-tile-unset"  :style="{ transitionDelay: `${index * 300}ms` }">
-
-          </div>
+          <div class="front mini-board-tile-unset"  :style="{ transitionDelay: `${index * 300}ms` }" />
           <div
             :class="['back', tile.state]"
             :style="{
@@ -46,7 +45,7 @@ const currentBoard = $computed(() => {
               animationDelay: `${index * 100}ms`
             }"
           >
-
+            {{ showLetters ? tile.letter.toUpperCase() : '' }}
           </div>
         </div>
       </div>
@@ -67,6 +66,8 @@ const currentBoard = $computed(() => {
 .mini-board-name {
   position: relative;
   padding-bottom: 38px;
+  font-weight: 500;
+  font-size: 18px;
 }
 
 .mini-board-name > div {
@@ -115,6 +116,7 @@ const currentBoard = $computed(() => {
   transition: transform 0.6s;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  font-weight: 600;
 }
 
 .mini-board-tile .back {

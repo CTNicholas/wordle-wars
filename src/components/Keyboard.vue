@@ -89,4 +89,8 @@ button:last-of-type {
 button.big {
   flex: 1.5;
 }
+
+button.big {
+  font-size: 14px !important;
+}
 </style>
