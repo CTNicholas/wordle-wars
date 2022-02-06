@@ -10,6 +10,7 @@ const emit = defineEmits<{
 
 // Get word of the day
 const answer = getWordOfTheDay()
+console.log('ANSWER', answer)
 
 // Board state. Each tile is represented as { letter, state }
 const board = $ref(
@@ -36,7 +37,7 @@ const letterStates: LettersGuessed = $ref({})
 
 // Emit event on letterStates change
 watch(letterStates, () => {
-  emit('lettersGuessed', { letterStates: letterStates, letterBoard: genResultGrid() })
+  emit('lettersGuessed', { letterStates: letterStates, letterBoard: board })
 })
 
 // Handle keyboard input.
@@ -170,6 +171,7 @@ const icons = {
   [LetterState.INITIAL]: null
 }
 
+
 function genResultGrid () {
   return board
     .slice(0, currentRowIndex + 1)
@@ -187,47 +189,87 @@ function genResultGrid () {
       <pre v-if="grid">{{ grid }}</pre>
     </div>
   </Transition>
-  <div id="board">
-    <div
-      v-for="(row, index) in board"
-      :class="[
-        'row',
-        shakeRowIndex === index && 'shake',
-        success && currentRowIndex === index && 'jump'
-      ]"
-    >
+  <div id="board-wrapper">
+    <div id="board">
+      <div class="board-left">
+        <slot name="board-left" />
+      </div>
       <div
-        v-for="(tile, index) in row"
-        :class="['tile', tile.letter && 'filled', tile.state && 'revealed']"
+        v-for="(row, index) in board"
+        :class="[
+          'row',
+          shakeRowIndex === index && 'shake',
+          success && currentRowIndex === index && 'jump'
+        ]"
       >
-        <div class="front" :style="{ transitionDelay: `${index * 300}ms` }">
-          {{ tile.letter }}
-        </div>
         <div
-          :class="['back', tile.state]"
-          :style="{
-            transitionDelay: `${index * 300}ms`,
-            animationDelay: `${index * 100}ms`
-          }"
+          v-for="(tile, index) in row"
+          :class="['tile', tile.letter && 'filled', tile.state && 'revealed']"
         >
-          {{ tile.letter }}
+          <div class="front" :style="{ transitionDelay: `${index * 300}ms` }">
+            {{ tile.letter }}
+          </div>
+          <div
+            :class="['back', tile.state]"
+            :style="{
+              transitionDelay: `${index * 300}ms`,
+              animationDelay: `${index * 100}ms`
+            }"
+          >
+            {{ tile.letter }}
+          </div>
         </div>
+      </div>
+      <div class="board-right">
+        <slot name="board-right" />
       </div>
     </div>
   </div>
-  <Keyboard @key="onKey" :letter-states="letterStates" />
+  <div id="keyboard-wrapper">
+    <Keyboard @key="onKey" :letter-states="letterStates" />
+  </div>
 </template>
 
 <style scoped>
+#board-wrapper {
+  --border-radius: 2px;
+
+  display: flex;
+  width: 100%;
+  justify-content: center;
+  align-items: center;
+  margin: 0 auto;
+  flex-grow: 12;
+  --height: min(420px, calc(var(--vh, 100vh) - 350px)); /* was 310 */
+}
+
 #board {
   display: grid;
   grid-template-rows: repeat(6, 1fr);
   grid-gap: 5px;
-  padding: 10px;
   box-sizing: border-box;
-  --height: min(420px, calc(var(--vh, 100vh) - 310px));
   height: var(--height);
   width: min(350px, calc(var(--height) / 6 * 5));
+  position: relative;
+}
+
+.board-left, .board-right {
+  position: absolute;
+  top: 0;
+  bottom: 0;
+}
+
+.board-left {
+  right: 100%;
+}
+
+.board-right {
+  left: 100%;
+}
+
+#keyboard-wrapper {
+  width: 100%;
+  max-width: 500px;
   margin: 0 auto;
 }
 
@@ -284,6 +326,7 @@ function genResultGrid () {
   transition: transform 0.6s;
   backface-visibility: hidden;
   -webkit-backface-visibility: hidden;
+  border-radius: var(--border-radius);
 }
 
 .tile .front {

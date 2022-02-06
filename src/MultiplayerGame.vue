@@ -1,25 +1,26 @@
 <script lang="ts">
 import { createClient } from '@liveblocks/client'
-import { randomId } from './lib/randomId'
+import { createRoomId } from './lib/createRoomId'
 
 const client = createClient({
   publicApiKey: import.meta.env.VITE_LIVEBLOCKS_PUBLIC_KEY as string,
 })
 
-const roomId = new URLSearchParams(window.location.search).get('room') || randomId()
+// Set and/or get ?room=[id] param
+const roomId = createRoomId()
 </script>
 
 <script setup lang="ts">
 import { onUnmounted } from 'vue'
-import { GameEmitProps, GameState, OtherUser } from './types'
-import { randomId } from './lib/randomId'
+import { GameEmitProps, GameState, OtherScore, OtherUser } from './types'
 import Game from './components/Game.vue'
 import { Others, Presence, Room } from '@liveblocks/client'
 import MiniBoard from './components/MiniBoard.vue'
+import MiniScore from './components/MiniScore.vue'
 
 // Current state of game and username
 let gameState: GameState = $ref(GameState.INTRO)
-let username = $ref('')
+let username = $ref(localStorage.getItem('username') || '')
 
 // Liveblocks variables
 let room: Room = $ref()
@@ -30,6 +31,9 @@ let othersPresence = $computed(() => {
     ? [...others].filter(other => other.presence).map(other => other.presence)
     : []
 })
+const othersFilterOdd = (odd = true) => {
+  return othersPresence.filter((o, index) => odd ? index % 2 : !(index % 2))
+}
 
 let unsubscribePresence = $ref(() => {})
 let unsubscribeOthers = $ref(() => {})
@@ -41,6 +45,7 @@ function createRoom () {
   unsubscribeOthers = room.subscribe('others', onOthersChange)
   room.updatePresence({ name: username, ready: false, board: '', score: {} })
   gameState = GameState.WAITING
+  localStorage.setItem('username', username)
 }
 
 const gameEvents: { [key in GameState]?: () => void } = {
@@ -63,6 +68,9 @@ function onOthersChange (updatedOthers: Others<OtherUser>) {
 }
 
 function allAreReady () {
+  if (!others || !others.count) {
+    return false
+  }
   const othersReady = [...others].every(other => other.presence && other.presence.ready)
   return myPresence.ready && othersReady
 }
@@ -100,7 +108,7 @@ onUnmounted(() => {
     <form @submit.prevent="createRoom">
       <label for="set-username">Username</label>
       <input type="text" id="set-username" v-model="username" autocomplete="off" required />
-      <input type="submit" value="Create room" />
+      <input type="submit" value="Join room" />
     </form>
   </div>
 
@@ -126,11 +134,22 @@ onUnmounted(() => {
     </div>
   </div>
 
-  <div v-if="gameState === GameState.PLAYING">
-    <div v-for="other in othersPresence">
-      <MiniBoard :user="other" />
+  <div v-if="gameState === GameState.PLAYING" id="playing">
+    <div class="mini-score-container">
+      <MiniScore v-for="other in othersPresence" :user="other" />
     </div>
-    <Game @lettersGuessed="onLettersGuessed" />
+    <Game @lettersGuessed="onLettersGuessed">
+      <template v-slot:board-left>
+        <div class="mini-board-container">
+          <MiniBoard v-for="other in othersFilterOdd(true)" :user="other" />
+        </div>
+      </template>
+      <template v-slot:board-right>
+        <div class="mini-board-container">
+          <MiniBoard  v-for="other in othersFilterOdd(false)" :user="other" />
+        </div>
+      </template>
+    </Game>
   </div>
 
   <div v-if="gameState === GameState.COMPLETE" id="complete">
@@ -139,12 +158,34 @@ onUnmounted(() => {
 </template>
 
 <style>
-#intro, #waiting, #complete {
+#intro, #waiting, #complete, #playing {
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
   flex-grow: 1;
+}
+
+#playing {
+  justify-content: space-between;
+}
+
+.mini-score-container {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+  margin-bottom: 20px;
+}
+
+.mini-board-container {
+  margin: 0 40px;
+  display: grid;
+  grid-template-rows: repeat(2, calc(var(--height) / 2));
+  grid-auto-columns: auto;
+  grid-auto-flow: column;
+  gap: 0 40px;
 }
 
 #intro form, .waiting-list {

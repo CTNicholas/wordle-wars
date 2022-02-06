@@ -28,8 +28,13 @@ export const enum GameState {
   COMPLETE = 'complete'
 }
 
+export type LetterBoard = {
+  letter: string,
+  state: LetterState[][]
+}
+
 export type GameEmitProps = {
+  letterBoard: LetterBoard
   letterStates: LettersGuessed
-  letterBoard: string
 }
 
