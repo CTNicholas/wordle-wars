@@ -46,7 +46,7 @@ const rows = [
 
 <style scoped>
 #keyboard {
-  margin: 30px 8px 0;
+  margin: 0px 8px 0;
   user-select: none;
 }
 
@@ -63,7 +63,7 @@ const rows = [
 
 button {
   font-family: inherit;
-  font-weight: bold;
+  font-weight: 600;
   border: 0;
   padding: 0;
   margin: 0 6px 0 0;

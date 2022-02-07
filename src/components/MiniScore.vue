@@ -8,7 +8,7 @@ const { user } = defineProps<{
 
 <template>
   <div class="mini-score" v-if="user.score">
-    <div>{{ user.name }}</div>
+    <div class="mini-score-name">{{ user.name }}</div>
     <div class="mini-score-scores">
       <div class="mini-score-number correct" v-if="user.score.correct === 5">
         ✓
@@ -22,6 +22,9 @@ const { user } = defineProps<{
       <div class="mini-score-number present" v-if="user.score.present > 0">
         {{ user.score.present }}
       </div>
+      <div class="mini-score-number absent" v-else-if="user.score.correct < 5">
+        0
+      </div>
     </div>
   </div>
 </template>
@@ -29,10 +32,13 @@ const { user } = defineProps<{
 <style scoped>
 .mini-score {
   --border-radius: 2px;
+}
 
+.mini-score-name {
   text-align: center;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 18px;
+  color: #47504c;
 }
 
 .mini-score-scores {

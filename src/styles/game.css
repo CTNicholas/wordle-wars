@@ -31,11 +31,12 @@ input, button {
 h1 {
   margin: 4px 0;
   font-size: 36px;
+  font-weight: 900;
 }
 
 header {
   border-bottom: 1px solid #ccc;
-  margin-bottom: 30px;
+  margin-bottom: 20px;
   position: relative;
 }
 

@@ -16,7 +16,7 @@ import { LettersGuessedProps, GameState, OtherScore, OtherUser, GameCompleteProp
 import Game from './components/Game.vue'
 import { Others, Presence, Room } from '@liveblocks/client'
 import MiniBoard from './components/MiniBoard.vue'
-import MiniScore from './components/MiniScore.vue'
+import MiniScores from './components/MiniScores.vue'
 
 // Current state of game and username
 let gameState: GameState = $ref(GameState.INTRO)
@@ -26,17 +26,20 @@ let username = $ref(localStorage.getItem('username') || '')
 let room: Room = $ref()
 let myPresence: Presence = $ref()
 let others: Others<OtherUser> = $ref()
+let unsubscribePresence = $ref(() => {})
+let unsubscribeOthers = $ref(() => {})
+
+// Filter all others with presence, and return their presence
 let othersPresence = $computed(() => {
   return others
     ? [...others].filter(other => other.presence).map(other => other.presence)
     : []
 })
+
+// Filter others by odd or even number
 const othersFilterOdd = (odd = true) => {
   return othersPresence.filter((o, index) => odd ? index % 2 : !(index % 2))
 }
-
-let unsubscribePresence = $ref(() => {})
-let unsubscribeOthers = $ref(() => {})
 
 // Create room with random ID, watch for other user changes
 function enterRoom () {
@@ -62,16 +65,19 @@ const gameEvents: { [key in GameState]?: () => void } = {
   }
 }
 
+// When current user changes, update ref and run gameEvent
 function onMyPresenceChange (updatedPresence: any) {
   myPresence = updatedPresence
   gameEvents[gameState]?.()
 }
 
+// When others change, update ref and run gameEvent
 function onOthersChange (updatedOthers: Others<OtherUser>) {
   others = updatedOthers
   gameEvents[gameState]?.()
 }
 
+// Returns true if all users presence.ready === true
 function allAreReady () {
   if (!others || !others.count) {
     return false
@@ -80,6 +86,7 @@ function allAreReady () {
   return myPresence.ready && othersReady
 }
 
+// When current player gusses a row of letters
 function onLettersGuessed ({ letterStates, letterBoard }: LettersGuessedProps) {
   const currentScore: OtherScore|any = { correct: 0, present: 0, absent: 0 }
   Object.values(letterStates).forEach(state => {
@@ -88,6 +95,7 @@ function onLettersGuessed ({ letterStates, letterBoard }: LettersGuessedProps) {
   room.updatePresence({ score: currentScore, board: letterBoard })
 }
 
+// When current player wins or loses game
 function onGameComplete ({ success, successGrid }: GameCompleteProps) {
   if (success) {
 
@@ -147,9 +155,7 @@ onUnmounted(() => {
   </div>
 
   <div v-if="gameState === GameState.PLAYING || gameState === GameState.COMPLETE" id="playing">
-    <div class="mini-score-container">
-      <MiniScore v-for="other in othersPresence" :user="other" />
-    </div>
+    <MiniScores :users="othersPresence" />
     <Game @lettersGuessed="onLettersGuessed" @gameComplete="onGameComplete">
       <template v-slot:board-left>
         <div class="mini-board-container">
@@ -167,7 +173,7 @@ onUnmounted(() => {
 
 <style>
 h1 {
-  letter-spacing: 3px;
+  letter-spacing: 1.5px;
 }
 
 #intro, #waiting, #complete, #playing {
@@ -180,15 +186,6 @@ h1 {
 
 #playing {
   justify-content: space-between;
-}
-
-.mini-score-container {
-  flex-grow: 1;
-  display: flex;
-  justify-content: center;
-  align-items: center;
-  gap: 15px;
-  margin-bottom: 20px;
 }
 
 .mini-board-container {
@@ -235,4 +232,17 @@ h1 {
   width: 100%;
   background-color: limegreen;
 }
+
+@media (max-width: 415px) {
+  header h1 {
+    font-size: 28px;
+  }
+}
+
+@media (max-width: 715px) {
+  .board-left, .board-right {
+    display: none;
+  }
+}
+
 </style>

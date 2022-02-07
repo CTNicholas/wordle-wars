@@ -66,8 +66,9 @@ const currentBoard = $computed(() => {
 .mini-board-name {
   position: relative;
   padding-bottom: 38px;
-  font-weight: 500;
+  font-weight: 600;
   font-size: 18px;
+  color: #47504c;
 }
 
 .mini-board-name > div {

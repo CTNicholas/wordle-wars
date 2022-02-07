@@ -237,11 +237,13 @@ function genResultGrid () {
 
   display: flex;
   width: 100%;
+  max-width: 100vw;
   justify-content: center;
   align-items: center;
   margin: 0 auto;
   flex-grow: 12;
-  --height: min(420px, calc(var(--vh, 100vh) - 350px)); /* was 310 */
+  --height: min(420px, calc(var(--vh, 100vh) - 380px)); /* was 310 */
+  overflow: hidden;
 }
 
 #board {
