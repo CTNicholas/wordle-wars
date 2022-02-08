@@ -20,6 +20,7 @@ export type OtherUser = {
   score: OtherScore
   position: number
   stage: GameState
+  rowsComplete: number
 }
 
 export const enum LetterState {
@@ -33,11 +34,11 @@ export type LettersGuessed = Record<string, LetterState>
 
 export type LetterBoard = {
   letter: string,
-  state: LetterState[][]
+  state: LetterState
 }
 
 export type LettersGuessedProps = {
-  letterBoard: LetterBoard
+  letterBoard: LetterBoard[][]
   letterStates: LettersGuessed
 }
 

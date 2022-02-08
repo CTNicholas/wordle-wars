@@ -17,6 +17,9 @@ import Game from './components/Game.vue'
 import { Others, Presence, Room } from '@liveblocks/client'
 import MiniBoard from './components/MiniBoard.vue'
 import MiniScores from './components/MiniScores.vue'
+import MiniBoardPlaying from './components/MiniBoardPlaying.vue'
+import MiniBoardScore from './components/MiniBoardScore.vue'
+import { sortUsers } from './lib/sortUsers'
 
 // Current state of game and username
 let gameState: GameState = $ref(GameState.INTRO)
@@ -41,6 +44,13 @@ const othersFilterOdd = (odd = true) => {
   return othersPresence.filter((o, index) => odd ? index % 2 : !(index % 2))
 }
 
+const sortedUsers = $computed(() => {
+  if (!myPresence || !othersPresence) {
+    return []
+  }
+  return sortUsers([...othersPresence, myPresence] as OtherUser[])
+})
+
 // Updates the current game stage
 function updateGameStage (stage: GameState) {
   gameState = stage
@@ -57,7 +67,8 @@ function enterRoom () {
     board: '',
     score: { [LetterState.ABSENT]: 0, [LetterState.CORRECT]: 0, [LetterState.PRESENT]: 0 },
     position: 0,
-    stage: gameState
+    stage: gameState,
+    rowsComplete: 0
   })
   updateGameStage(GameState.WAITING)
   localStorage.setItem('username', username)
@@ -115,7 +126,13 @@ function onLettersGuessed ({ letterStates, letterBoard }: LettersGuessedProps) {
   Object.values(letterStates).forEach(state => {
     currentScore[state] += 1
   })
-  room.updatePresence({ score: currentScore, board: letterBoard })
+  const rowsComplete = letterBoard.reduce((acc, curr) => {
+    if (curr.every(obj => obj.state !== LetterState.INITIAL)) {
+      return acc += 1
+    }
+    return acc
+  }, 0)
+  room.updatePresence({ score: currentScore, board: letterBoard, rowsComplete: rowsComplete })
 }
 
 // When current player wins or loses game
@@ -178,16 +195,16 @@ onUnmounted(() => {
   </div>
 
   <div v-if="gameState === GameState.PLAYING || gameState === GameState.COMPLETE" id="playing">
-    <MiniScores :users="[...othersPresence, myPresence]" :shrink="true" />
+    <MiniScores :sortedUsers="sortedUsers" :shrink="true" />
     <Game @lettersGuessed="onLettersGuessed" @gameComplete="onGameComplete">
       <template v-slot:board-left>
         <div class="mini-board-container">
-          <MiniBoard v-for="other in othersFilterOdd(true)" :user="other" :showLetters="gameState === GameState.COMPLETE"/>
+          <MiniBoardPlaying v-for="other in othersFilterOdd(true)" :user="other" :showLetters="gameState === GameState.COMPLETE" />
         </div>
       </template>
       <template v-slot:board-right>
         <div class="mini-board-container">
-          <MiniBoard v-for="other in othersFilterOdd(false)" :user="other" :showLetters="gameState === GameState.COMPLETE"/>
+          <MiniBoardPlaying v-for="other in othersFilterOdd(false)" :user="other" :showLetters="gameState === GameState.COMPLETE" />
         </div>
       </template>
     </Game>
@@ -196,8 +213,9 @@ onUnmounted(() => {
   <div v-if="gameState === GameState.SCORES" id="scores">
     <div>
       <h2>Final scores</h2>
-      <MiniScores :users="[...othersPresence, myPresence]" />
+      <MiniScores :sortedUsers="sortedUsers" />
       <!--<button @click="updateGameStage(GameState.WAITING)">Play again</button>-->
+      <MiniBoardScore v-for="other in sortedUsers" :user="other" :showLetters="true" />
     </div>
   </div>
 </template>

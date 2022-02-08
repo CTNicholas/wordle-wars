@@ -1,21 +1,13 @@
 <script setup lang="ts">
 import { LetterState, OtherUser } from '../types'
 import ScoreCard from './ScoreCard.vue'
+import { sortUsers } from '../lib/sortUsers'
 
-const { users, shrink = false } = defineProps<{
-  users: OtherUser[],
+const { sortedUsers, shrink = false } = defineProps<{
+  sortedUsers: OtherUser[],
   shrink?: boolean
 }>()
 
-let sortedUsers = $computed(() => {
-  return users.sort((a: OtherUser, b: OtherUser) => {
-    const correctSort = b.score[LetterState.CORRECT] - a.score[LetterState.CORRECT]
-    if (correctSort !== 0) {
-      return correctSort
-    }
-    return b.score[LetterState.PRESENT] = a.score[LetterState.PRESENT]
-  })
-})
 </script>
 
 <template>
@@ -66,6 +58,7 @@ let sortedUsers = $computed(() => {
   justify-content: center;
   align-items: center;
   gap: 5px;
+  margin-bottom: -20px
 }
 
 .mini-score-score {
@@ -92,6 +85,12 @@ let sortedUsers = $computed(() => {
 
   .mini-score-mobile.shrink {
     display: flex;
+  }
+}
+
+@media (max-width: 715px) {
+  .mini-score-mobile {
+    font-size: 18px;
   }
 }
 </style>

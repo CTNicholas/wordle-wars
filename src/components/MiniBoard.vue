@@ -23,11 +23,7 @@ const currentBoard = $computed(() => {
 
 <template>
   <div>
-    <div class="mini-board-name">
-      <div>
-        {{ user.name }}
-      </div>
-    </div>
+    <slot />
     <div class="mini-board">
       <div
         v-for="row in currentBoard"
@@ -61,23 +57,6 @@ const currentBoard = $computed(() => {
   grid-template-rows: repeat(6, 25px);
   grid-gap: 2px;
   box-sizing: border-box;
-}
-
-.mini-board-name {
-  position: relative;
-  padding-bottom: 38px;
-  font-weight: 600;
-  font-size: 18px;
-  color: #47504c;
-}
-
-.mini-board-name > div {
-  position: absolute;
-  white-space: nowrap;
-  overflow: hidden;
-  text-overflow: ellipsis;
-  width: 100%;
-  padding-top: 8px;
 }
 
 .mini-board-row {
