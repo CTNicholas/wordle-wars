@@ -15,11 +15,12 @@ import { onUnmounted } from 'vue'
 import { LettersGuessedProps, GameState, OtherScore, OtherUser, GameCompleteProps, LetterState } from './types'
 import Game from './components/Game.vue'
 import { Others, Presence, Room } from '@liveblocks/client'
-import MiniBoard from './components/MiniBoard.vue'
 import MiniScores from './components/MiniScores.vue'
 import MiniBoardPlaying from './components/MiniBoardPlaying.vue'
 import MiniBoardScore from './components/MiniBoardScore.vue'
 import { sortUsers } from './lib/sortUsers'
+import ExampleInfo from './components/ExampleInfo.vue'
+import ExampleWrapper from './components/ExampleWrapper.vue'
 
 // Current state of game and username
 let gameState: GameState = $ref(GameState.INTRO)
@@ -153,71 +154,68 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <header>
-    <h1>WORDLE WARS</h1>
-    <a
-      id="source-link"
-      href="https://github.com/yyx990803/vue-wordle"
-      target="_blank"
-    >Source</a
-    >
-  </header>
+  <ExampleWrapper>
+    <ExampleInfo />
+    <header>
+      <h1>WORDLE WARS</h1>
+    </header>
 
-  <div v-if="gameState === GameState.INTRO" id="intro">
-    <h2>Intro</h2>
-    <form @submit.prevent="enterRoom">
-      <label for="set-username">Username</label>
-      <input type="text" id="set-username" v-model="username" autocomplete="off" required />
-      <input type="submit" value="Join room" />
-    </form>
-  </div>
-
-  <div v-if="gameState === GameState.WAITING || gameState === GameState.READY" id="waiting">
-    <h2>Waiting for players</h2>
-    <div class="waiting-list">
-      <div class="waiting-player">
-        <span>{{ myPresence.name }} (you)</span>
-        <div :class="[myPresence.stage === GameState.READY ? 'waiting-player-ready' : 'waiting-player-waiting']">
-          {{ myPresence.stage === GameState.READY ? 'Ready' : 'Waiting' }}
-        </div>
-      </div>
-      <div v-for="other in othersPresence" class="waiting-player">
-        <span>{{ other.name }}</span>
-        <div :class="[other.stage === GameState.READY ? 'waiting-player-ready' : 'waiting-player-waiting']">
-          {{ other.stage === GameState.READY ? 'Ready' : 'Waiting' }}
-        </div>
-      </div>
-      <button v-if="myPresence.stage !== GameState.READY" @click="updateGameStage(GameState.READY)" class="waiting-ready">
-        Ready?
-      </button>
-      <div v-else>Game starting when all players ready</div>
+    <div v-if="gameState === GameState.INTRO" id="intro">
+      <h2>Intro</h2>
+      <form @submit.prevent="enterRoom">
+        <label for="set-username">Username</label>
+        <input type="text" id="set-username" v-model="username" autocomplete="off" required />
+        <input type="submit" value="Join room" />
+      </form>
     </div>
-  </div>
 
-  <div v-if="gameState === GameState.PLAYING || gameState === GameState.COMPLETE" id="playing">
-    <MiniScores :sortedUsers="sortedUsers" :shrink="true" />
-    <Game @lettersGuessed="onLettersGuessed" @gameComplete="onGameComplete">
-      <template v-slot:board-left>
-        <div class="mini-board-container">
-          <MiniBoardPlaying v-for="other in othersFilterOdd(true)" :user="other" :showLetters="gameState === GameState.COMPLETE" />
+    <div v-if="gameState === GameState.WAITING || gameState === GameState.READY" id="waiting">
+      <h2>Waiting for players</h2>
+      <div class="waiting-list">
+        <div class="waiting-player">
+          <span>{{ myPresence.name }} (you)</span>
+          <div :class="[myPresence.stage === GameState.READY ? 'waiting-player-ready' : 'waiting-player-waiting']">
+            {{ myPresence.stage === GameState.READY ? 'Ready' : 'Waiting' }}
+          </div>
         </div>
-      </template>
-      <template v-slot:board-right>
-        <div class="mini-board-container">
-          <MiniBoardPlaying v-for="other in othersFilterOdd(false)" :user="other" :showLetters="gameState === GameState.COMPLETE" />
+        <div v-for="other in othersPresence" class="waiting-player">
+          <span>{{ other.name }}</span>
+          <div :class="[other.stage === GameState.READY ? 'waiting-player-ready' : 'waiting-player-waiting']">
+            {{ other.stage === GameState.READY ? 'Ready' : 'Waiting' }}
+          </div>
         </div>
-      </template>
-    </Game>
-  </div>
-
-  <div v-if="gameState === GameState.SCORES" id="scores">
-    <div>
-      <h2>Final scores</h2>
-      <MiniScores :sortedUsers="sortedUsers" />
-      <!--<button @click="updateGameStage(GameState.WAITING)">Play again</button>-->
-      <MiniBoardScore v-for="other in sortedUsers" :user="other" :showLetters="true" />
+        <button v-if="myPresence.stage !== GameState.READY" @click="updateGameStage(GameState.READY)" class="waiting-ready">
+          Ready?
+        </button>
+        <div v-else>Game starting when all players ready</div>
+      </div>
     </div>
-  </div>
+
+    <div v-if="gameState === GameState.PLAYING || gameState === GameState.COMPLETE" id="playing">
+      <MiniScores :sortedUsers="sortedUsers" :shrink="true" />
+      <Game @lettersGuessed="onLettersGuessed" @gameComplete="onGameComplete">
+        <template v-slot:board-left>
+          <div class="mini-board-container">
+            <MiniBoardPlaying v-for="other in othersFilterOdd(true)" :user="other" :showLetters="gameState === GameState.COMPLETE" />
+          </div>
+        </template>
+        <template v-slot:board-right>
+          <div class="mini-board-container">
+            <MiniBoardPlaying v-for="other in othersFilterOdd(false)" :user="other" :showLetters="gameState === GameState.COMPLETE" />
+          </div>
+        </template>
+      </Game>
+    </div>
+
+    <div v-if="gameState === GameState.SCORES" id="scores">
+      <div>
+        <h2>Final scores</h2>
+        <MiniScores :sortedUsers="sortedUsers" />
+        <!--<button @click="updateGameStage(GameState.WAITING)">Play again</button>-->
+        <MiniBoardScore v-for="other in sortedUsers" :user="other" :showLetters="true" />
+      </div>
+    </div>
+  </ExampleWrapper>
 </template>
 
 <style>

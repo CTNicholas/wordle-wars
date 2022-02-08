@@ -1,9 +1,16 @@
+@tailwind base;
+@tailwind components;
+@tailwind utilities;
+
 html, body, #app {
   position: absolute;
   top: 0;
   left: 0;
   right: 0;
   height: var(--vh);
+  height: -moz-available;
+  height: -webkit-fill-available;
+  height: stretch;
 }
 
 *, *:before, *:after {
@@ -20,7 +27,6 @@ html, body, #app {
 
 body {
   font-family: Inter, 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
-  text-align: center;
   margin: 0 auto;
 }
 
@@ -39,6 +45,7 @@ header {
   margin-bottom: 20px;
   position: relative;
   color: #454b45;
+  text-align: center;
 }
 
 #source-link {
