@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { OtherUser } from '../types'
+import { OtherUser, LetterState } from '../types'
 
 const { user } = defineProps<{
   user: OtherUser
@@ -8,19 +8,19 @@ const { user } = defineProps<{
 
 <template>
   <div class="mini-score-scores">
-    <div class="mini-score-number correct" v-if="user.score.correct === 5">
+    <div class="mini-score-number correct" v-if="user.score[LetterState.CORRECT] === 5">
       ✓
     </div>
-    <div class="mini-score-number correct" v-else-if="user.score.correct > 0">
-      {{ user.score.correct }}
+    <div class="mini-score-number correct" v-else-if="user.score[LetterState.CORRECT] > 0">
+      {{ user.score[LetterState.CORRECT] }}
     </div>
     <div class="mini-score-number absent" v-else>
       0
     </div>
-    <div class="mini-score-number present" v-if="user.score.present > 0">
-      {{ user.score.present }}
+    <div class="mini-score-number present" v-if="user.score[LetterState.PRESENT] > 0">
+      {{ user.score[LetterState.PRESENT] }}
     </div>
-    <div class="mini-score-number correct" v-else-if="user.score.correct === 5">
+    <div class="mini-score-number correct" v-else-if="user.score[LetterState.CORRECT] === 5">
       ✓
     </div>
     <div class="mini-score-number absent" v-else>

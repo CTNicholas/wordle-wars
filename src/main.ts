@@ -1,6 +1,6 @@
 import { createApp } from 'vue'
-import MultiplayerGame from './MultiplayerGame.vue'
-import './styles/game.css'
+import WordleWars from './WordleWars.vue'
+import './styles/global.css'
 
 // resize for scaling the board size
 window.addEventListener('resize', onResize)
@@ -12,4 +12,4 @@ function onResize () {
   document.body.style.setProperty('--vh', window.innerHeight + 'px')
 }
 
-createApp(MultiplayerGame).mount('#app')
+createApp(WordleWars).mount('#app')

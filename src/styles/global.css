@@ -3,7 +3,7 @@ html, body, #app {
   top: 0;
   left: 0;
   right: 0;
-  bottom: 0;
+  height: var(--vh);
 }
 
 *, *:before, *:after {
@@ -38,6 +38,7 @@ header {
   border-bottom: 1px solid #ccc;
   margin-bottom: 20px;
   position: relative;
+  color: #454b45;
 }
 
 #source-link {

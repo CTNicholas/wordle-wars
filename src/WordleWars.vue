@@ -12,7 +12,7 @@ const roomId = createRoomId()
 
 <script setup lang="ts">
 import { onUnmounted } from 'vue'
-import { LettersGuessedProps, GameState, OtherScore, OtherUser, GameCompleteProps } from './types'
+import { LettersGuessedProps, GameState, OtherScore, OtherUser, GameCompleteProps, LetterState } from './types'
 import Game from './components/Game.vue'
 import { Others, Presence, Room } from '@liveblocks/client'
 import MiniBoard from './components/MiniBoard.vue'
@@ -41,6 +41,12 @@ const othersFilterOdd = (odd = true) => {
   return othersPresence.filter((o, index) => odd ? index % 2 : !(index % 2))
 }
 
+// Updates the current game stage
+function updateGameStage (stage: GameState) {
+  gameState = stage
+  room.updatePresence({ stage })
+}
+
 // Create room with random ID, watch for other user changes
 function enterRoom () {
   room = client.enter('wordle-wars-' + roomId)
@@ -48,19 +54,28 @@ function enterRoom () {
   unsubscribeOthers = room.subscribe('others', onOthersChange)
   room.updatePresence({
     name: username,
-    ready: false,
     board: '',
-    score: {},
-    position: 0
+    score: { [LetterState.ABSENT]: 0, [LetterState.CORRECT]: 0, [LetterState.PRESENT]: 0 },
+    position: 0,
+    stage: gameState
   })
-  gameState = GameState.WAITING
+  updateGameStage(GameState.WAITING)
   localStorage.setItem('username', username)
 }
 
+// Game events that run for everyone when current user, or other user, changes
 const gameEvents: { [key in GameState]?: () => void } = {
-  [GameState.WAITING]: () => {
-    if (allAreReady()) {
-      gameState = GameState.PLAYING
+  // When all are ready, start game
+  [GameState.READY]: () => {
+    if (allInStages([GameState.READY])) {
+      updateGameStage(GameState.PLAYING)
+    }
+  },
+
+  // When all are complete, show scores
+  [GameState.COMPLETE]: () => {
+    if (allInStages([GameState.SCORES, GameState.COMPLETE, GameState.WAITING])) {
+      updateGameStage(GameState.SCORES)
     }
   }
 }
@@ -77,18 +92,26 @@ function onOthersChange (updatedOthers: Others<OtherUser>) {
   gameEvents[gameState]?.()
 }
 
-// Returns true if all users presence.ready === true
-function allAreReady () {
+// Returns true if every user is in one of the `stages`
+function allInStages (stages: GameState[]) {
   if (!others || !others.count) {
     return false
   }
-  const othersReady = [...others].every(other => other.presence && other.presence.ready)
-  return myPresence.ready && othersReady
+  return stages.some(stage => {
+    const othersReady = [...others].every(
+      other => other.presence && other.presence.stage === stage
+    )
+    return Boolean(myPresence.stage === stage && othersReady)
+  })
 }
 
-// When current player gusses a row of letters
+// When current player guesses a row of letters
 function onLettersGuessed ({ letterStates, letterBoard }: LettersGuessedProps) {
-  const currentScore: OtherScore|any = { correct: 0, present: 0, absent: 0 }
+  const currentScore: OtherScore|any = {
+    [LetterState.CORRECT]: 0,
+    [LetterState.PRESENT]: 0,
+    [LetterState.ABSENT ]: 0
+  }
   Object.values(letterStates).forEach(state => {
     currentScore[state] += 1
   })
@@ -97,10 +120,10 @@ function onLettersGuessed ({ letterStates, letterBoard }: LettersGuessedProps) {
 
 // When current player wins or loses game
 function onGameComplete ({ success, successGrid }: GameCompleteProps) {
+  updateGameStage(GameState.COMPLETE)
   if (success) {
-
+    room.updatePresence({ score: { ...myPresence.score, [LetterState.CORRECT]: 5 }})
   }
-  gameState = GameState.COMPLETE
 }
 
 // Unsubscribe room if unmounted
@@ -108,7 +131,7 @@ onUnmounted(() => {
   unsubscribePresence()
   unsubscribeOthers()
   client.leave(roomId)
-  gameState = GameState.INTRO
+  updateGameStage(GameState.INTRO)
 })
 </script>
 
@@ -132,22 +155,22 @@ onUnmounted(() => {
     </form>
   </div>
 
-  <div v-if="gameState === GameState.WAITING" id="waiting">
+  <div v-if="gameState === GameState.WAITING || gameState === GameState.READY" id="waiting">
     <h2>Waiting for players</h2>
     <div class="waiting-list">
       <div class="waiting-player">
         <span>{{ myPresence.name }} (you)</span>
-        <div :class="[myPresence.ready ? 'waiting-player-ready' : 'waiting-player-waiting']">
-          {{ myPresence.ready ? 'Ready' : 'Waiting' }}
+        <div :class="[myPresence.stage === GameState.READY ? 'waiting-player-ready' : 'waiting-player-waiting']">
+          {{ myPresence.stage === GameState.READY ? 'Ready' : 'Waiting' }}
         </div>
       </div>
       <div v-for="other in othersPresence" class="waiting-player">
         <span>{{ other.name }}</span>
-        <div :class="[other.ready ? 'waiting-player-ready' : 'waiting-player-waiting']">
-          {{ other.ready ? 'Ready' : 'Waiting' }}
+        <div :class="[other.stage === GameState.READY ? 'waiting-player-ready' : 'waiting-player-waiting']">
+          {{ other.stage === GameState.READY ? 'Ready' : 'Waiting' }}
         </div>
       </div>
-      <button v-if="!myPresence.ready" @click="room.updatePresence({ ready: true })" class="waiting-ready">
+      <button v-if="myPresence.stage !== GameState.READY" @click="updateGameStage(GameState.READY)" class="waiting-ready">
         Ready?
       </button>
       <div v-else>Game starting when all players ready</div>
@@ -155,7 +178,7 @@ onUnmounted(() => {
   </div>
 
   <div v-if="gameState === GameState.PLAYING || gameState === GameState.COMPLETE" id="playing">
-    <MiniScores :users="othersPresence" />
+    <MiniScores :users="[...othersPresence, myPresence]" :shrink="true" />
     <Game @lettersGuessed="onLettersGuessed" @gameComplete="onGameComplete">
       <template v-slot:board-left>
         <div class="mini-board-container">
@@ -168,6 +191,14 @@ onUnmounted(() => {
         </div>
       </template>
     </Game>
+  </div>
+
+  <div v-if="gameState === GameState.SCORES" id="scores">
+    <div>
+      <h2>Final scores</h2>
+      <MiniScores :users="[...othersPresence, myPresence]" />
+      <!--<button @click="updateGameStage(GameState.WAITING)">Play again</button>-->
+    </div>
   </div>
 </template>
 
@@ -186,6 +217,14 @@ h1 {
 
 #playing {
   justify-content: space-between;
+}
+
+#scores {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  flex-direction: column;
 }
 
 .mini-board-container {

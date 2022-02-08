@@ -1,20 +1,26 @@
 <script setup lang="ts">
-import { OtherUser } from '../types'
+import { LetterState, OtherUser } from '../types'
 import ScoreCard from './ScoreCard.vue'
 
-const { users } = defineProps<{
-  users: OtherUser[]
+const { users, shrink = false } = defineProps<{
+  users: OtherUser[],
+  shrink?: boolean
 }>()
 
-// TODO sort scores
 let sortedUsers = $computed(() => {
-  return users
+  return users.sort((a: OtherUser, b: OtherUser) => {
+    const correctSort = b.score[LetterState.CORRECT] - a.score[LetterState.CORRECT]
+    if (correctSort !== 0) {
+      return correctSort
+    }
+    return b.score[LetterState.PRESENT] = a.score[LetterState.PRESENT]
+  })
 })
 </script>
 
 <template>
   <div class="mini-score-container">
-    <div v-for="(user, index) in sortedUsers" class="mini-score">
+    <div v-for="(user, index) in sortedUsers" :class="['mini-score', shrink && 'shrink']">
 
       <div class="mini-score-score">
         {{ index + 1 }}.
@@ -22,12 +28,12 @@ let sortedUsers = $computed(() => {
       <div class="mini-score-name">{{ user.name }}</div>
       <ScoreCard :user="user" />
     </div>
-    <div class="mini-score-mobile">
-      <span v-if="sortedUsers[0].score.correct < 5">
-        {{ sortedUsers[0].name }} is leading with
+    <div :class="['mini-score-mobile', shrink && 'shrink']">
+      <span v-if="sortedUsers[0].score.correct === 5">
+        <span class="mini-score-name">{{ sortedUsers[0].name }}</span> has won!
       </span>
       <span v-else>
-        {{ sortedUsers[0].name }} has won!
+        <span class="mini-score-name">{{ sortedUsers[0].name }}</span> is leading with
       </span>
       <ScoreCard :user="sortedUsers[0]" />
     </div>
@@ -42,7 +48,7 @@ let sortedUsers = $computed(() => {
   justify-content: center;
   align-items: stretch;
   gap: 18px;
-  margin-bottom: 0;
+  margin: 0 auto;
   width: 100%;
   max-width: 350px;
   font-size: 22px;
@@ -59,7 +65,7 @@ let sortedUsers = $computed(() => {
   display: none;
   justify-content: center;
   align-items: center;
-  gap: 10px;
+  gap: 5px;
 }
 
 .mini-score-score {
@@ -80,11 +86,11 @@ let sortedUsers = $computed(() => {
 
 
 @media (max-height: 975px) {
-  .mini-score {
+  .mini-score.shrink {
     display: none;
   }
 
-  .mini-score-mobile {
+  .mini-score-mobile.shrink {
     display: flex;
   }
 }

@@ -1,3 +1,12 @@
+export const enum GameState {
+  INTRO = 'intro',
+  WAITING = 'waiting',
+  READY = 'ready',
+  PLAYING = 'playing',
+  COMPLETE = 'complete',
+  SCORES = 'scores'
+}
+
 export type OtherScore = {
   correct: number
   present: number
@@ -10,6 +19,7 @@ export type OtherUser = {
   board: string
   score: OtherScore
   position: number
+  stage: GameState
 }
 
 export const enum LetterState {
@@ -20,14 +30,6 @@ export const enum LetterState {
 }
 
 export type LettersGuessed = Record<string, LetterState>
-
-export const enum GameState {
-  INTRO = 'intro',
-  CONNECTING = 'connecting',
-  WAITING = 'waiting',
-  PLAYING = 'playing',
-  COMPLETE = 'complete'
-}
 
 export type LetterBoard = {
   letter: string,
