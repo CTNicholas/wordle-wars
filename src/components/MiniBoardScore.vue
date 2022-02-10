@@ -2,8 +2,9 @@
 import MiniBoard from './MiniBoard.vue'
 import { OtherUser } from '../types'
 
-const { user, showLetters = false } = defineProps<{
+const { user, number, showLetters = false } = defineProps<{
   user: OtherUser,
+  position: number,
   showLetters: boolean
 }>()
 </script>
@@ -12,7 +13,7 @@ const { user, showLetters = false } = defineProps<{
   <MiniBoard :user="user" :showLetters="showLetters">
      <div class="mini-board-name mini-board-final-score">
       <div>
-        {{ user.name }}
+        {{ position }}. {{ user.name }}
       </div>
     </div>
   </MiniBoard>

@@ -1,10 +1,14 @@
 <script setup lang="ts">
 import { LetterState, OtherUser } from '../types'
 
-const { user, showLetters = false } = defineProps<{
+const { user, rows = 6, large = false, showLetters = false } = defineProps<{
   user: OtherUser,
-  showLetters: boolean
+  rows?: number
+  large?: boolean,
+  showLetters?: boolean
 }>()
+
+const [fontSize, boxSize] = large ? ['32px', '47px'] : ['16px', '25px']
 
 const emptyBoard = $ref(
   Array.from({ length: 6 }, () =>
@@ -51,17 +55,20 @@ const currentBoard = $computed(() => {
 
 <style scoped>
 .mini-board {
+  --box-size: v-bind(boxSize);
+  --board-rows: v-bind(rows);
   --border-radius: 2px;
 
+  font-size: v-bind(fontSize);
   display: grid;
-  grid-template-rows: repeat(6, 25px);
-  grid-gap: 2px;
+  grid-template-rows: repeat(var(--board-rows), var(--box-size));
+  grid-gap: 3px;
   box-sizing: border-box;
 }
 
 .mini-board-row {
   display: grid;
-  grid-template-columns: repeat(5, 25px);
+  grid-template-columns: repeat(5, var(--box-size));
   grid-gap: 3px;
 }
 
@@ -79,6 +86,7 @@ const currentBoard = $computed(() => {
 
 .mini-board-tile-unset {
   border: 1px solid #d3d6da;
+  background: #fff;
   border-radius: var(--border-radius);
 }
 

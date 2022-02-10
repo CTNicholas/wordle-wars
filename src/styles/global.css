@@ -8,9 +8,7 @@ html, body, #app {
   left: 0;
   right: 0;
   height: var(--vh);
-  height: -moz-available;
   height: -webkit-fill-available;
-  height: stretch;
 }
 
 *, *:before, *:after {
@@ -42,10 +40,14 @@ h1 {
 
 header {
   border-bottom: 1px solid #ccc;
-  margin-bottom: 20px;
   position: relative;
   color: #454b45;
   text-align: center;
+  background: #fff;
+}
+
+header + * {
+  padding-top: 20px;
 }
 
 #source-link {

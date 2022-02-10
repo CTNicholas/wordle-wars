@@ -14,13 +14,19 @@ const roomId = createRoomId()
 import { onUnmounted } from 'vue'
 import { LettersGuessedProps, GameState, OtherScore, OtherUser, GameCompleteProps, LetterState } from './types'
 import Game from './components/Game.vue'
-import { Others, Presence, Room } from '@liveblocks/client'
+import { LiveList, LiveObject, Others, Presence, Room } from '@liveblocks/client'
 import MiniScores from './components/MiniScores.vue'
 import MiniBoardPlaying from './components/MiniBoardPlaying.vue'
 import MiniBoardScore from './components/MiniBoardScore.vue'
 import { sortUsers } from './lib/sortUsers'
 import ExampleInfo from './components/ExampleInfo.vue'
 import ExampleWrapper from './components/ExampleWrapper.vue'
+import { copyUrlToClipboard } from './lib/copyText'
+import { getWordOfTheDay } from './lib/words'
+
+// Get word of the day
+const answer = getWordOfTheDay()
+console.log('ANSWER', answer)
 
 // Current state of game and username
 let gameState: GameState = $ref(GameState.INTRO)
@@ -30,8 +36,10 @@ let username = $ref(localStorage.getItem('username') || '')
 let room: Room = $ref()
 let myPresence: Presence = $ref()
 let others: Others<OtherUser> = $ref()
+let savedScores: any = $ref()
 let unsubscribePresence = $ref(() => {})
 let unsubscribeOthers = $ref(() => {})
+let unsubscribeScores = $ref(() => {})
 
 // Filter all others with presence, and return their presence
 let othersPresence = $computed(() => {
@@ -45,6 +53,7 @@ const othersFilterOdd = (odd = true) => {
   return othersPresence.filter((o, index) => odd ? index % 2 : !(index % 2))
 }
 
+// Users sorted by score
 const sortedUsers = $computed(() => {
   if (!myPresence || !othersPresence) {
     return []
@@ -59,10 +68,22 @@ function updateGameStage (stage: GameState) {
 }
 
 // Create room with random ID, watch for other user changes
-function enterRoom () {
+async function enterRoom () {
   room = client.enter('wordle-wars-' + roomId)
   unsubscribePresence = room.subscribe('my-presence', onMyPresenceChange)
   unsubscribeOthers = room.subscribe('others', onOthersChange)
+
+  const { root }: { root: LiveObject } = await room.getStorage()
+  console.log(1, root, root.get(answer))
+  //root.get(answer).push('lemon')
+  if (!root.get(answer)) {
+    console.log('creating')
+    root.set(answer, new LiveList())
+  }
+  unsubscribeScores = room.subscribe(root, onScoresChange)
+  savedScores = () => root.get(answer)
+  console.log(2, savedScores().toArray())
+
   room.updatePresence({
     name: username,
     board: '',
@@ -104,6 +125,11 @@ function onOthersChange (updatedOthers: Others<OtherUser>) {
   gameEvents[gameState]?.()
 }
 
+// When current user changes, update ref and run gameEvent
+function onScoresChange (root: any) {
+  console.log('ROOTLE', root)
+}
+
 // Returns true if every user is in one of the `stages`
 function allInStages (stages: GameState[]) {
   if (!others || !others.count) {
@@ -142,6 +168,7 @@ function onGameComplete ({ success, successGrid }: GameCompleteProps) {
   if (success) {
     room.updatePresence({ score: { ...myPresence.score, [LetterState.CORRECT]: 5 }})
   }
+  savedScores().push(myPresence as OtherUser)
 }
 
 // Unsubscribe room if unmounted
@@ -151,6 +178,8 @@ onUnmounted(() => {
   client.leave(roomId)
   updateGameStage(GameState.INTRO)
 })
+
+const a = () => savedScores ? savedScores().toArray() : []
 </script>
 
 <template>
@@ -161,39 +190,51 @@ onUnmounted(() => {
     </header>
 
     <div v-if="gameState === GameState.INTRO" id="intro">
-      <h2>Intro</h2>
-      <form @submit.prevent="enterRoom">
-        <label for="set-username">Username</label>
-        <input type="text" id="set-username" v-model="username" autocomplete="off" required />
-        <input type="submit" value="Join room" />
-      </form>
+      <div>
+        <h2>Enter your name</h2>
+        <!--<MiniBoard :large="true" :showLetters="true" :user="{ board: enterYourName }" :rows="enterYourName.length" />-->
+        <form @submit.prevent="enterRoom">
+          <label for="set-username">Username</label>
+          <input type="text" id="set-username" v-model="username" autocomplete="off" required />
+          <button>Join game</Button>
+        </form>
+      </div>
     </div>
 
     <div v-if="gameState === GameState.WAITING || gameState === GameState.READY" id="waiting">
-      <h2>Waiting for players</h2>
-      <div class="waiting-list">
-        <div class="waiting-player">
-          <span>{{ myPresence.name }} (you)</span>
-          <div :class="[myPresence.stage === GameState.READY ? 'waiting-player-ready' : 'waiting-player-waiting']">
-            {{ myPresence.stage === GameState.READY ? 'Ready' : 'Waiting' }}
+      <div>
+        <h2>Waiting for players</h2>
+        <div class="waiting-list">
+          <div class="waiting-player">
+            <span>{{ myPresence.name }} (you)</span>
+            <div :class="[myPresence.stage === GameState.READY ? 'waiting-player-ready' : 'waiting-player-waiting']">
+              {{ myPresence.stage === GameState.READY ? 'Ready' : 'Waiting' }}
+            </div>
           </div>
-        </div>
-        <div v-for="other in othersPresence" class="waiting-player">
-          <span>{{ other.name }}</span>
-          <div :class="[other.stage === GameState.READY ? 'waiting-player-ready' : 'waiting-player-waiting']">
-            {{ other.stage === GameState.READY ? 'Ready' : 'Waiting' }}
+          <div v-for="other in othersPresence" class="waiting-player">
+            <span>{{ other.name }}</span>
+            <div :class="[other.stage === GameState.READY ? 'waiting-player-ready' : 'waiting-player-waiting']">
+              {{ other.stage === GameState.READY ? 'Ready' : 'Waiting' }}
+            </div>
           </div>
+          <button v-if="myPresence.stage !== GameState.READY" @click="updateGameStage(GameState.READY)" class="">
+            Ready to start?
+          </button>
+          <button v-else @click="updateGameStage(GameState.WAITING)" class="button-yellow">
+            Not ready?
+          </button>
+          <div class="divider" />
+          <button class="button-gray" @click="copyUrlToClipboard">
+            Copy link <svg xmlns="http://www.w3.org/2000/svg" class="inline -mt-0.5 ml-0.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" /><path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2a1 1 0 110 2h-2v-2z" /></svg>
+          </button>
+          <div class="small-center-message">Share link to play together</div>
         </div>
-        <button v-if="myPresence.stage !== GameState.READY" @click="updateGameStage(GameState.READY)" class="waiting-ready">
-          Ready?
-        </button>
-        <div v-else>Game starting when all players ready</div>
       </div>
     </div>
 
     <div v-if="gameState === GameState.PLAYING || gameState === GameState.COMPLETE" id="playing">
       <MiniScores :sortedUsers="sortedUsers" :shrink="true" />
-      <Game @lettersGuessed="onLettersGuessed" @gameComplete="onGameComplete">
+      <Game :answer="answer" @lettersGuessed="onLettersGuessed" @gameComplete="onGameComplete">
         <template v-slot:board-left>
           <div class="mini-board-container">
             <MiniBoardPlaying v-for="other in othersFilterOdd(true)" :user="other" :showLetters="gameState === GameState.COMPLETE" />
@@ -210,17 +251,97 @@ onUnmounted(() => {
     <div v-if="gameState === GameState.SCORES" id="scores">
       <div>
         <h2>Final scores</h2>
-        <MiniScores :sortedUsers="sortedUsers" />
+        <!--<MiniScores :sortedUsers="sortedUsers" />-->
         <!--<button @click="updateGameStage(GameState.WAITING)">Play again</button>-->
-        <MiniBoardScore v-for="other in sortedUsers" :user="other" :showLetters="true" />
+        <div class="scores-grid">
+          <MiniBoardScore v-for="(other, index) in a()" :user="other" :position="index + 1" :showLetters="true" />
+        </div>
+        Come back tomorrow for a new Wordle War!
       </div>
     </div>
   </ExampleWrapper>
 </template>
 
-<style>
+<style scoped>
+#intro, #waiting, #scores {
+  font-size: 18px;
+  background: #eff5f0;
+}
+
+#intro > div, #waiting > div {
+  width: 330px;
+  max-width: 100%;
+  background: #fff;
+  padding: 40px 40px 30px 40px;
+  border-radius: 4px;
+  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1),0 1px 2px 0 rgba(0, 0, 0, 0.06);
+  display: flex;
+  align-items: center;
+  flex-direction: column;
+}
+
+label  {
+  font-size: 16px;
+  font-weight: 500;
+  opacity: 0.6;
+}
+
+input {
+  padding: 8px 10px;
+  border-radius: 4px;
+  border: 1px solid lightgrey;
+  box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+button {
+  width: 100%;
+  background-color: #1bb238;
+  padding: 9px 10px;
+  border-radius: 4px;
+  color: #fff;
+  font-weight: 600;
+  transition: background-color ease-in-out 150ms;
+  margin-top: 24px;
+  margin-bottom: 0;
+}
+
+button:hover {
+  background-color: #28c549;
+}
+
+button:active {
+  background-color: #1bb238;
+}
+
+input:focus-visible, input:focus, button:focus-visible {
+  outline: 2px solid #118f2b;
+}
+
+button.button-yellow {
+  filter: hue-rotate(286deg);
+}
+
+button.button-gray {
+  filter: grayscale(1);
+}
+
+.divider {
+  background: lightgrey;
+  height: 1px;
+  display: block;
+  width: 100%;
+  margin: 24px 0 0;
+}
+
 h1 {
   letter-spacing: 1.5px;
+}
+
+h2 {
+  font-size: 24px;
+  font-weight: 500;
+  text-align: center;
+  margin-bottom: 24px;
 }
 
 #intro, #waiting, #complete, #playing {
@@ -268,11 +389,28 @@ h1 {
   text-align: left;
 }
 
+.small-center-message {
+  width: 100%;
+  text-align: center;
+  font-size: 16px;
+  font-weight: 500;
+  opacity: 0.6;
+  margin-top: 12px;
+}
+
 .waiting-player {
   display: flex;
   justify-content: space-between;
   align-items: center;
   margin-bottom: 12px;
+}
+
+.waiting-player-waiting, .waiting-player-ready {
+  font-weight: 600;
+}
+
+.waiting-player-message {
+  margin-top: 24px;
 }
 
 .waiting-player-waiting {
@@ -286,6 +424,16 @@ h1 {
 .waiting-ready {
   width: 100%;
   background-color: limegreen;
+}
+
+.scores-grid {
+  max-width: 100%;
+  width: 320px;
+  margin: 0 auto;
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  grid-auto-rows: auto;
+  grid-gap: 40px;
 }
 
 @media (max-width: 415px) {

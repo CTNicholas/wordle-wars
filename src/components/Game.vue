@@ -1,6 +1,6 @@
 <script setup lang="ts">
-import { onUnmounted, watch } from 'vue'
-import { allWords, getWordOfTheDay } from '../lib/words'
+import { onUnmounted } from 'vue'
+import { allWords } from '../lib/words'
 import Keyboard from './Keyboard.vue'
 import { GameCompleteProps, LettersGuessedProps, LettersGuessed, LetterState } from '../types'
 
@@ -9,9 +9,9 @@ const emit = defineEmits<{
   (e: 'gameComplete', key: GameCompleteProps): void
 }>()
 
-// Get word of the day
-const answer = getWordOfTheDay()
-console.log('ANSWER', answer)
+const { answer } = defineProps<{
+  answer: string
+}>()
 
 // Board state. Each tile is represented as { letter, state }
 const board = $ref(
