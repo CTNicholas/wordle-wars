@@ -1,5 +1,5 @@
 import { createApp } from 'vue'
-import WordleWars from './WordleWars.vue'
+import Index from './Index.vue'
 import './styles/global.css'
 
 // resize for scaling the board size
@@ -12,4 +12,4 @@ function onResize () {
   document.body.style.setProperty('--vh', window.innerHeight + 'px')
 }
 
-createApp(WordleWars).mount('#app')
+createApp(Index).mount('#app')
