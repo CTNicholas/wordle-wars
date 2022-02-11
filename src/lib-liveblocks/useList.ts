@@ -1,9 +1,9 @@
-import { inject, onUnmounted, ref, watch } from 'vue'
+import { inject, onUnmounted, Ref, ref, watch } from 'vue'
 import { roomSymbol } from './symbols'
-import { LiveList, Room } from '@liveblocks/client'
+import { LiveList, LiveObject, Room } from '@liveblocks/client'
 import { useStorage } from './useStorage'
 
-export function useList (name: string, initial?: any[]) {
+export function useList (name: string, initial?: any[]): Ref<() => LiveList<any>|void>|null {
   const room = inject<Room>(roomSymbol)
 
   if (!room) {

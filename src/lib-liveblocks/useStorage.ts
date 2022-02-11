@@ -1,9 +1,10 @@
-import { inject, ref, watch, watchEffect } from 'vue'
+import { inject, Ref, ref, watch, watchEffect } from 'vue'
 import { LiveObject, Room } from '@liveblocks/client'
 import { roomSymbol } from './symbols'
 
-export function useStorage () {
+export function useStorage (): Ref<() => LiveObject> {
   const room = inject<Room>(roomSymbol)
+  // @ts-ignore
   const rootRef = ref<() => LiveObject>(() => {})
 
   watchEffect(() => {

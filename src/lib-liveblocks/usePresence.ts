@@ -1,16 +1,17 @@
-import { inject, onUnmounted, ref, watch, watchEffect } from 'vue'
+import { inject, onUnmounted, ref, watchEffect } from 'vue'
 import { Presence, Room } from '@liveblocks/client'
 import { roomSymbol } from './symbols'
 
-export function usePresence () {
+export function usePresence (): [Presence|null, ((updatedPresence: any) => void)] {
   const room = inject<Room>(roomSymbol)
 
   if (!room) {
     console.error('Use RoomProvider as parent with id prop')
-    return null
+    return [null, updatePresence]
   }
 
   const presence = ref<Presence>({})
+
   watchEffect(() => {
     room.updatePresence(presence.value)
   })
@@ -18,9 +19,17 @@ export function usePresence () {
   const unsubscribe = room.subscribe('my-presence', newPresence => {
     presence.value = newPresence
   })
+
   onUnmounted(() => {
     unsubscribe()
   })
 
-  return presence
+  function updatePresence (updatedPresence: any) {
+    if (room && presence?.value) {
+      room.updatePresence(updatedPresence)
+    } else {
+    }
+  }
+
+  return [presence, updatePresence]
 }

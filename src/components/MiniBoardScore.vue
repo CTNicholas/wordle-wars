@@ -10,7 +10,7 @@ const { user, number, showLetters = false } = defineProps<{
 </script>
 
 <template>
-  <MiniBoard :user="user" :showLetters="showLetters">
+  <MiniBoard :large="true" :user="user" :showLetters="showLetters">
      <div class="mini-board-name mini-board-final-score">
       <div>
         {{ position }}. {{ user.name }}
@@ -26,10 +26,10 @@ const { user, number, showLetters = false } = defineProps<{
 
 .mini-board-name {
   position: relative;
-  padding-bottom: 38px;
+  padding-bottom: 48px;
   font-weight: 600;
-  font-size: 18px;
-  color: #47504c;
+  font-size: 21px;
+  color: black;
 }
 
 .mini-board-name > div {

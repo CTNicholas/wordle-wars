@@ -2,9 +2,8 @@
 import { createClient } from '@liveblocks/client'
 import { createRoomId } from './lib/createRoomId'
 import WordleWars from './WordleWars.vue'
-import LiveblocksProvider from './liveblocks/LiveblocksProvider.vue'
-import RoomProvider from './liveblocks/RoomProvider.vue'
-import Test from './Test.vue'
+import LiveblocksProvider from './lib-liveblocks/LiveblocksProvider.vue'
+import RoomProvider from './lib-liveblocks/RoomProvider.vue'
 
 const client = createClient({
   publicApiKey: import.meta.env.VITE_LIVEBLOCKS_PUBLIC_KEY as string,
@@ -15,9 +14,8 @@ const roomId = createRoomId()
 
 <template>
   <LiveblocksProvider :client="client">
-    <RoomProvider id="roomId">
-      <Test />
-      <!--<WordleWars />-->
+    <RoomProvider :id="roomId">
+      <WordleWars />
     </RoomProvider>
   </LiveblocksProvider>
 </template>

@@ -1,21 +1,9 @@
-<script lang="ts">
-import { createClient } from '@liveblocks/client'
-import { createRoomId } from './lib/createRoomId'
-
-const client = createClient({
-  publicApiKey: import.meta.env.VITE_LIVEBLOCKS_PUBLIC_KEY as string,
-})
-
-// Set and/or get ?room=[id] param
-const roomId = createRoomId()
-</script>
-
 <script setup lang="ts">
-import { onUnmounted } from 'vue'
-import { LettersGuessedProps, GameState, OtherScore, OtherUser, GameCompleteProps, LetterState } from './types'
+import { onUnmounted, watchEffect } from 'vue'
+import { GameCompleteProps, GameState, LettersGuessedProps, LetterState, OtherScore, OtherUser } from './types'
 import Game from './components/Game.vue'
-import { LiveList, LiveObject, Others, Presence, Room } from '@liveblocks/client'
 import MiniScores from './components/MiniScores.vue'
+import MiniBoard from './components/MiniBoard.vue'
 import MiniBoardPlaying from './components/MiniBoardPlaying.vue'
 import MiniBoardScore from './components/MiniBoardScore.vue'
 import { sortUsers } from './lib/sortUsers'
@@ -23,68 +11,56 @@ import ExampleInfo from './components/ExampleInfo.vue'
 import ExampleWrapper from './components/ExampleWrapper.vue'
 import { copyUrlToClipboard } from './lib/copyText'
 import { getWordOfTheDay } from './lib/words'
+import { useList, useOthers, usePresence } from './lib-liveblocks'
+import titleMessage from './components/TitleMessages'
+
+// TODO Add copy paste score result at end, and share button
 
 // Get word of the day
 const answer = getWordOfTheDay()
 console.log('ANSWER', answer)
 
 // Current state of game and username
-let gameState: GameState = $ref(GameState.INTRO)
+let gameState: GameState = $ref(GameState.CONNECTING)
 let username = $ref(localStorage.getItem('username') || '')
+let startAnimation = $ref(false)
 
-// Liveblocks variables
-let room: Room = $ref()
-let myPresence: Presence = $ref()
-let others: Others<OtherUser> = $ref()
-let savedScores: any = $ref()
-let unsubscribePresence = $ref(() => {})
-let unsubscribeOthers = $ref(() => {})
-let unsubscribeScores = $ref(() => {})
+// Custom Liveblocks hooks, based on React library
+const [myPresence, updateMyPresence] = usePresence()
+const others = useOthers()
+const savedScores = useList('scores-' + answer)
 
 // Filter all others with presence, and return their presence
 let othersPresence = $computed(() => {
-  return others
-    ? [...others].filter(other => other.presence).map(other => other.presence)
+  return others?.value
+    ? [...others.value].filter(other => other.presence).map(other => other.presence)
     : []
 })
 
 // Filter others by odd or even number
 const othersFilterOdd = (odd = true) => {
-  return othersPresence.filter((o, index) => odd ? index % 2 : !(index % 2))
+  return othersPresence.filter((o, index) => index % 2 === (odd ? 1 : 0))
 }
 
 // Users sorted by score
 const sortedUsers = $computed(() => {
-  if (!myPresence || !othersPresence) {
+  if (!myPresence?.value || !othersPresence) {
     return []
   }
-  return sortUsers([...othersPresence, myPresence] as OtherUser[])
+  return sortUsers([...othersPresence, myPresence.value] as OtherUser[])
 })
 
 // Updates the current game stage
 function updateGameStage (stage: GameState) {
-  gameState = stage
-  room.updatePresence({ stage })
+  if (myPresence?.value) {
+    gameState = stage
+    updateMyPresence({ stage })
+  }
 }
 
 // Create room with random ID, watch for other user changes
 async function enterRoom () {
-  room = client.enter('wordle-wars-' + roomId)
-  unsubscribePresence = room.subscribe('my-presence', onMyPresenceChange)
-  unsubscribeOthers = room.subscribe('others', onOthersChange)
-
-  const { root }: { root: LiveObject } = await room.getStorage()
-  console.log(1, root, root.get(answer))
-  //root.get(answer).push('lemon')
-  if (!root.get(answer)) {
-    console.log('creating')
-    root.set(answer, new LiveList())
-  }
-  unsubscribeScores = room.subscribe(root, onScoresChange)
-  savedScores = () => root.get(answer)
-  console.log(2, savedScores().toArray())
-
-  room.updatePresence({
+  updateMyPresence({
     name: username,
     board: '',
     score: { [LetterState.ABSENT]: 0, [LetterState.CORRECT]: 0, [LetterState.PRESENT]: 0 },
@@ -92,19 +68,35 @@ async function enterRoom () {
     stage: gameState,
     rowsComplete: 0
   })
+
   updateGameStage(GameState.WAITING)
   localStorage.setItem('username', username)
 }
 
 // Game events that run for everyone when current user, or other user, changes
 const gameEvents: { [key in GameState]?: () => void } = {
+  // Move to intro when connected to presence and scores
+  [GameState.CONNECTING]: () => {
+    if (myPresence?.value && savedScores?.value()) {
+      updateGameStage(GameState.INTRO)
+    }
+  },
+  // When connected, if scores for current word found, show scores
+  [GameState.INTRO]: () => {
+    if (savedScores?.value()?.toArray().length) {
+      updateGameStage(GameState.SCORES)
+    }
+  },
   // When all are ready, start game
   [GameState.READY]: () => {
     if (allInStages([GameState.READY])) {
-      updateGameStage(GameState.PLAYING)
+      startAnimation = true
+      setTimeout(() => {
+        startAnimation = false
+        updateGameStage(GameState.PLAYING)
+      }, 800)
     }
   },
-
   // When all are complete, show scores
   [GameState.COMPLETE]: () => {
     if (allInStages([GameState.SCORES, GameState.COMPLETE, GameState.WAITING])) {
@@ -113,33 +105,21 @@ const gameEvents: { [key in GameState]?: () => void } = {
   }
 }
 
-// When current user changes, update ref and run gameEvent
-function onMyPresenceChange (updatedPresence: any) {
-  myPresence = updatedPresence
+// On changes, run game events
+watchEffect(() => {
   gameEvents[gameState]?.()
-}
-
-// When others change, update ref and run gameEvent
-function onOthersChange (updatedOthers: Others<OtherUser>) {
-  others = updatedOthers
-  gameEvents[gameState]?.()
-}
-
-// When current user changes, update ref and run gameEvent
-function onScoresChange (root: any) {
-  console.log('ROOTLE', root)
-}
+})
 
 // Returns true if every user is in one of the `stages`
 function allInStages (stages: GameState[]) {
-  if (!others || !others.count) {
+  if (!others?.value || !others?.value.count) {
     return false
   }
   return stages.some(stage => {
-    const othersReady = [...others].every(
+    const othersReady = [...others.value].every(
       other => other.presence && other.presence.stage === stage
     )
-    return Boolean(myPresence.stage === stage && othersReady)
+    return Boolean(myPresence!.value.stage === stage && othersReady)
   })
 }
 
@@ -159,27 +139,24 @@ function onLettersGuessed ({ letterStates, letterBoard }: LettersGuessedProps) {
     }
     return acc
   }, 0)
-  room.updatePresence({ score: currentScore, board: letterBoard, rowsComplete: rowsComplete })
+  updateMyPresence({ score: currentScore, board: letterBoard, rowsComplete: rowsComplete })
 }
 
 // When current player wins or loses game
 function onGameComplete ({ success, successGrid }: GameCompleteProps) {
+  if (!myPresence || !savedScores?.value) {
+    return
+  }
   updateGameStage(GameState.COMPLETE)
   if (success) {
-    room.updatePresence({ score: { ...myPresence.score, [LetterState.CORRECT]: 5 }})
+    updateMyPresence({ score: { ...myPresence.value.score, [LetterState.CORRECT]: 5 }})
   }
-  savedScores().push(myPresence as OtherUser)
+  savedScores.value().push(myPresence.value as OtherUser)
 }
 
-// Unsubscribe room if unmounted
 onUnmounted(() => {
-  unsubscribePresence()
-  unsubscribeOthers()
-  client.leave(roomId)
   updateGameStage(GameState.INTRO)
 })
-
-const a = () => savedScores ? savedScores().toArray() : []
 </script>
 
 <template>
@@ -188,6 +165,10 @@ const a = () => savedScores ? savedScores().toArray() : []
     <header>
       <h1>WORDLE WARS</h1>
     </header>
+
+    <div v-if="gameState === GameState.CONNECTING" id="connecting">
+      <MiniBoard class="animate-ping" :large="true" :showLetters="true" :user="{ board: titleMessage.connecting }" :rows="titleMessage.connecting.length" />
+    </div>
 
     <div v-if="gameState === GameState.INTRO" id="intro">
       <div>
@@ -212,7 +193,8 @@ const a = () => savedScores ? savedScores().toArray() : []
             </div>
           </div>
           <div v-for="other in othersPresence" class="waiting-player">
-            <span>{{ other.name }}</span>
+            <span v-if="other.name">{{ other.name }}</span>
+            <span v-else><i>Selecting name...</i></span>
             <div :class="[other.stage === GameState.READY ? 'waiting-player-ready' : 'waiting-player-waiting']">
               {{ other.stage === GameState.READY ? 'Ready' : 'Waiting' }}
             </div>
@@ -228,6 +210,10 @@ const a = () => savedScores ? savedScores().toArray() : []
             Copy link <svg xmlns="http://www.w3.org/2000/svg" class="inline -mt-0.5 ml-0.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" /><path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2a1 1 0 110 2h-2v-2z" /></svg>
           </button>
           <div class="small-center-message">Share link to play together</div>
+        </div>
+
+        <div v-if="startAnimation" class="start-animation">
+          <MiniBoard class="animate-ping" :large="true" :showLetters="true" :user="{ board: titleMessage.fight }" :rows="titleMessage.fight.length" />
         </div>
       </div>
     </div>
@@ -250,22 +236,34 @@ const a = () => savedScores ? savedScores().toArray() : []
 
     <div v-if="gameState === GameState.SCORES" id="scores">
       <div>
-        <h2>Final scores</h2>
+        <h2>
+          <span>Final scores for</span>
+          <MiniBoard :large="false" :showLetters="true" :user="{ board: titleMessage.wordToBoard(answer, 'correct') }" :rows="titleMessage.wordToBoard(answer, 'correct').length" />
+        </h2>
+        <div class="divider" />
         <!--<MiniScores :sortedUsers="sortedUsers" />-->
         <!--<button @click="updateGameStage(GameState.WAITING)">Play again</button>-->
         <div class="scores-grid">
-          <MiniBoardScore v-for="(other, index) in a()" :user="other" :position="index + 1" :showLetters="true" />
+          <MiniBoardScore v-for="(other, index) in savedScores().toArray()" :user="other" :position="index + 1" :showLetters="true" />
         </div>
-        Come back tomorrow for a new Wordle War!
+        <div class="divider" />
+        <div class="text-center mt-8">Come back tomorrow for a new Wordle War!</div>
       </div>
     </div>
   </ExampleWrapper>
 </template>
 
 <style scoped>
-#intro, #waiting, #scores {
+#connecting, #intro, #waiting, #scores {
   font-size: 18px;
   background: #eff5f0;
+}
+
+#connecting {
+  height: 100%;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 #intro > div, #waiting > div {
@@ -345,6 +343,7 @@ h2 {
 }
 
 #intro, #waiting, #complete, #playing {
+  position: relative;
   display: flex;
   flex-direction: column;
   align-items: center;
@@ -426,11 +425,34 @@ h2 {
   background-color: limegreen;
 }
 
-.scores-grid {
-  max-width: 100%;
-  width: 320px;
+.start-animation {
+  position: fixed;
+  display: flex;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  justify-content: center;
+  align-items: center;
+}
+
+#scores > div {
+  max-width: 538px;
+  width: 100%;
   margin: 0 auto;
+}
+
+#scores h2 {
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  gap: 10px;
+}
+
+.scores-grid {
+  width: 100%;
   display: grid;
+  margin: 40px 0;
   grid-template-columns: repeat(2, 1fr);
   grid-auto-rows: auto;
   grid-gap: 40px;
@@ -443,6 +465,15 @@ h2 {
 }
 
 @media (max-width: 715px) {
+  #scores > div {
+    max-width: 250px;
+  }
+
+  .scores-grid {
+    width: 250px;
+    grid-template-columns: repeat(1, 1fr);
+  }
+
   .board-left, .board-right {
     display: none;
   }

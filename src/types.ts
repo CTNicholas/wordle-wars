@@ -1,7 +1,9 @@
 export const enum GameState {
+  CONNECTING = 'connecting',
   INTRO = 'intro',
   WAITING = 'waiting',
   READY = 'ready',
+  STARTING = 'starting',
   PLAYING = 'playing',
   COMPLETE = 'complete',
   SCORES = 'scores'
