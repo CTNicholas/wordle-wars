@@ -9,7 +9,7 @@ const client = createClient({
   publicApiKey: import.meta.env.VITE_LIVEBLOCKS_PUBLIC_KEY as string,
 })
 
-const roomId = createRoomId()
+const roomId = 'wordle-wars-' + createRoomId()
 </script>
 
 <template>

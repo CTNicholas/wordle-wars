@@ -1,5 +1,5 @@
 <script setup lang="ts">
-import { onUnmounted, watchEffect } from 'vue'
+import { watchEffect } from 'vue'
 import { GameCompleteProps, GameState, LettersGuessedProps, LetterState, OtherScore, OtherUser } from './types'
 import Game from './components/Game.vue'
 import MiniScores from './components/MiniScores.vue'
@@ -105,7 +105,7 @@ const gameEvents: { [key in GameState]?: () => void } = {
   }
 }
 
-// On changes, run game events
+// On changes, run above game events
 watchEffect(() => {
   gameEvents[gameState]?.()
 })
@@ -116,7 +116,7 @@ function allInStages (stages: GameState[]) {
     return false
   }
   return stages.some(stage => {
-    const othersReady = [...others.value].every(
+    const othersReady = others.value?.toArray().every(
       other => other.presence && other.presence.stage === stage
     )
     return Boolean(myPresence!.value.stage === stage && othersReady)
@@ -153,10 +153,6 @@ function onGameComplete ({ success, successGrid }: GameCompleteProps) {
   }
   savedScores.value().push(myPresence.value as OtherUser)
 }
-
-onUnmounted(() => {
-  updateGameStage(GameState.INTRO)
-})
 </script>
 
 <template>
@@ -173,7 +169,6 @@ onUnmounted(() => {
     <div v-if="gameState === GameState.INTRO" id="intro">
       <div>
         <h2>Enter your name</h2>
-        <!--<MiniBoard :large="true" :showLetters="true" :user="{ board: enterYourName }" :rows="enterYourName.length" />-->
         <form @submit.prevent="enterRoom">
           <label for="set-username">Username</label>
           <input type="text" id="set-username" v-model="username" autocomplete="off" required />
@@ -241,8 +236,6 @@ onUnmounted(() => {
           <MiniBoard :large="false" :showLetters="true" :user="{ board: titleMessage.wordToBoard(answer, 'correct') }" :rows="titleMessage.wordToBoard(answer, 'correct').length" />
         </h2>
         <div class="divider" />
-        <!--<MiniScores :sortedUsers="sortedUsers" />-->
-        <!--<button @click="updateGameStage(GameState.WAITING)">Play again</button>-->
         <div class="scores-grid">
           <MiniBoardScore v-for="(other, index) in savedScores().toArray()" :user="other" :position="index + 1" :showLetters="true" />
         </div>
@@ -342,7 +335,7 @@ h2 {
   margin-bottom: 24px;
 }
 
-#intro, #waiting, #complete, #playing {
+#intro, #waiting, #playing {
   position: relative;
   display: flex;
   flex-direction: column;
@@ -353,14 +346,6 @@ h2 {
 
 #playing {
   justify-content: space-between;
-}
-
-#scores {
-  flex-grow: 1;
-  display: flex;
-  justify-content: center;
-  align-items: stretch;
-  flex-direction: column;
 }
 
 .mini-board-container {
@@ -436,10 +421,20 @@ h2 {
   align-items: center;
 }
 
+
+#scores {
+  flex-grow: 1;
+  display: flex;
+  justify-content: center;
+  align-items: stretch;
+  flex-direction: column;
+}
+
 #scores > div {
   max-width: 538px;
   width: 100%;
   margin: 0 auto;
+  padding-bottom: 30px;
 }
 
 #scores h2 {
@@ -469,13 +464,13 @@ h2 {
     max-width: 250px;
   }
 
+  #scores h2 {
+    flex-direction: column;
+  }
+
   .scores-grid {
     width: 250px;
     grid-template-columns: repeat(1, 1fr);
-  }
-
-  .board-left, .board-right {
-    display: none;
   }
 }
 

@@ -428,4 +428,10 @@ function genResultGrid () {
     font-size: 3vh;
   }
 }
+
+@media (max-width: 715px) {
+  .board-left, .board-right {
+    display: none;
+  }
+}
 </style>
