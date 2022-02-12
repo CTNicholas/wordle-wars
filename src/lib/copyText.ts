@@ -7,10 +7,8 @@ export function copyTextToClipboard (text: string) {
     fallbackCopyTextToClipboard(text)
     return
   }
-  navigator.clipboard.writeText(text).then(function () {
-    console.log('Async: Copying to clipboard was successful!')
-  }, function (err) {
-    console.error('Async: Could not copy text: ', err)
+  navigator.clipboard.writeText(text).then(function () {}, function (err) {
+    console.error('Unable to copy', err)
   })
 }
 
@@ -28,11 +26,9 @@ function fallbackCopyTextToClipboard (text: string) {
   textArea.select()
 
   try {
-    var successful = document.execCommand('copy')
-    var msg = successful ? 'successful' : 'unsuccessful'
-    console.log('Fallback: Copying text command was ' + msg)
+    document.execCommand('copy')
   } catch (err) {
-    console.error('Fallback: Oops, unable to copy', err)
+    console.error('Unable to copy', err)
   }
 
   document.body.removeChild(textArea)

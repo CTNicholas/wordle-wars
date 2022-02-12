@@ -8,11 +8,14 @@ import MiniScores from './components/MiniScores.vue'
 import MiniBoard from './components/MiniBoard.vue'
 import Game from './components/Game.vue'
 import { useList, useOthers, usePresence } from './lib-liveblocks'
-import { copyUrlToClipboard, copyTextToClipboard } from './lib/copyText'
+import { copyTextToClipboard, copyUrlToClipboard } from './lib/copyText'
 import { getWordOfTheDay } from './lib/words'
 import { sortUsers } from './lib/sortUsers'
 import messages from './lib/messages'
 import Header from './components/Header.vue'
+
+// TODO Tidy up
+// TODO CodeSandbox
 
 // Get word of the day
 const answer = getWordOfTheDay()
@@ -36,9 +39,9 @@ let othersPresence = $computed(() => {
     : []
 })
 
-// Filter others by odd or even number
+// Filter others by odd or even number for live scores
 const othersFilterOdd = (odd = true) => {
-  return othersPresence.filter((o, index) => index % 2 === (odd ? 1 : 0))
+  return othersPresence.filter((o, index) => o?.score && (index % 2 === (odd ? 1 : 0)))
 }
 
 // Users sorted by score
@@ -46,7 +49,7 @@ const sortedUsers = $computed(() => {
   if (!myPresence?.value || !othersPresence) {
     return []
   }
-  return sortUsers([...othersPresence, myPresence.value] as OtherUser[])
+  return sortUsers([...othersPresence, myPresence.value].filter(user => user?.score) as OtherUser[])
 })
 
 // Updates the current game stage
@@ -58,7 +61,7 @@ function updateGameStage (stage: GameState) {
 }
 
 // Create room with random ID, watch for other user changes
-async function enterRoom () {
+async function enterWaitingRoom () {
   updateMyPresence({
     name: username,
     board: '',
@@ -79,15 +82,17 @@ const gameEvents: { [key in GameState]?: () => void } = {
       updateGameStage(GameState.INTRO)
     }
   },
+
   // When connected, if scores for current word found, show scores
   [GameState.INTRO]: () => {
     if (savedScores?.value()?.toArray().length) {
       updateGameStage(GameState.SCORES)
     }
   },
+
   // When all are ready, start game
   [GameState.READY]: () => {
-    if (allInStages([GameState.READY])) {
+    if (allInStages([GameState.READY, GameState.PLAYING])) {
       startAnimation = true
       setTimeout(() => {
         startAnimation = false
@@ -95,6 +100,7 @@ const gameEvents: { [key in GameState]?: () => void } = {
       }, 800)
     }
   },
+
   // When all are complete, show scores
   [GameState.COMPLETE]: () => {
     if (allInStages([GameState.SCORES, GameState.COMPLETE, GameState.WAITING])) {
@@ -113,12 +119,14 @@ function allInStages (stages: GameState[]) {
   if (!others?.value || !others?.value.count) {
     return false
   }
+  let myPresenceFound = false
   return stages.some(stage => {
     const othersReady = others.value?.toArray().every(
       other => other.presence && other.presence.stage === stage
     )
-    return Boolean(myPresence!.value.stage === stage && othersReady)
-  })
+    myPresenceFound = myPresenceFound || myPresence!.value.stage === stage
+    return Boolean(othersReady)
+  }) && myPresenceFound
 }
 
 // When current player guesses a row of letters
@@ -175,7 +183,7 @@ function createEmojiScore (successGrid: string) {
     <div v-if="gameState === GameState.INTRO" id="intro">
       <div>
         <h2>Enter your name</h2>
-        <form @submit.prevent="enterRoom">
+        <form @submit.prevent="enterWaitingRoom">
           <label for="set-username">Username</label>
           <input type="text" id="set-username" v-model="username" autocomplete="off" required />
           <button>Join game</Button>
@@ -196,8 +204,8 @@ function createEmojiScore (successGrid: string) {
           <div v-for="other in othersPresence" class="waiting-player">
             <span v-if="other.name">{{ other.name }}</span>
             <span v-else><i>Selecting name...</i></span>
-            <div :class="[other.stage === GameState.READY ? 'waiting-player-ready' : 'waiting-player-waiting']">
-              {{ other.stage === GameState.READY ? 'Ready' : 'Waiting' }}
+            <div :class="[other.stage === GameState.WAITING || other.stage === GameState.INTRO ? 'waiting-player-waiting' : 'waiting-player-ready']">
+              {{ other.stage === GameState.READY ? 'Ready' : other.stage === GameState.PLAYING ? 'Playing' : 'Waiting' }}
             </div>
           </div>
           <button v-if="myPresence.stage !== GameState.READY" @click="updateGameStage(GameState.READY)" class="">
