@@ -17,9 +17,8 @@ import Header from './components/Header.vue'
 // TODO Tidy up
 // TODO CodeSandbox
 
-// Get word of the day
+// Get word of the day. Resets at UTC +00:00
 const answer = getWordOfTheDay()
-console.log('ANSWER', answer)
 
 // Current state of game and username
 let gameState: GameState = $ref(GameState.CONNECTING)
