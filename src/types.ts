@@ -3,7 +3,6 @@ export const enum GameState {
   INTRO = 'intro',
   WAITING = 'waiting',
   READY = 'ready',
-  STARTING = 'starting',
   PLAYING = 'playing',
   COMPLETE = 'complete',
   SCORES = 'scores'
@@ -20,7 +19,6 @@ export type OtherUser = {
   ready: boolean
   board: string
   score: OtherScore
-  position: number
   stage: GameState
   rowsComplete: number
 }

@@ -90,6 +90,11 @@ const currentBoard = $computed(() => {
   border-radius: var(--border-radius);
 }
 
+.dark .mini-board-tile-unset {
+  background: #18181B;
+  border-color: #3F3F46;
+}
+
 .mini-board-tile .front,
 .mini-board-tile .back {
   box-sizing: border-box;

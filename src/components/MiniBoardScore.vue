@@ -29,7 +29,11 @@ const { user, number, showLetters = false } = defineProps<{
   padding-bottom: 48px;
   font-weight: 600;
   font-size: 21px;
-  color: black;
+  color: #000;
+}
+
+.dark .mini-board-name {
+  color: #fff;
 }
 
 .mini-board-name > div {

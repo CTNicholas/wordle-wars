@@ -6,12 +6,12 @@ const open = $ref(true)
 </script>
 
 <template>
-  <div v-if="!info.hide && open" class="fixed z-50 top-4 left-4 right-4 px-6 max-w-full sm:w-96 rounded-lg font-karla text-gray-400 text bg-gray-900">
+  <div v-if="!info.hide && open" class="fixed z-50 top-4 left-4 right-4 px-6 max-w-full sm:w-96 rounded-lg font-karla text-gray-400 bg-gray-900 dark:bg-gray-100 dark:text-gray-500">
     <div class="flex justify-between pt-6 mt-0.5">
       <div>
-        <h1 class="text-2xl text-white font-extrabold tracking-tight">{{ info.title }}</h1>
+        <h1 class="text-2xl text-white dark:text-gray-900 font-extrabold tracking-tight">{{ info.title }}</h1>
       </div>
-      <button @click="open = false" class="text-gray-400 hover:text-gray-300 focus:text-gray-300 w-8 h-8 flex items-center justify-center -mr-3 rounded-full">
+      <button @click="open = false" class="text-gray-400 hover:text-gray-300 focus:text-gray-300 dark:text-gray-500 dark:hover:text-gray-600 dark:focus:text-gray-600 w-8 h-8 flex items-center justify-center -mr-3 rounded-full">
         <span class="sr-only">Close dialog</span>
         <svg width="16" height="16" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
           <path fill-rule="evenodd" clip-rule="evenodd" d="M2.96967 11.9697L11.9697 2.96967L13.0303 4.03033L4.03033 13.0303L2.96967 11.9697Z"></path>
@@ -22,7 +22,7 @@ const open = $ref(true)
     <p class="mt-3 leading-relaxed">{{info.description }}</p>
     <a
       :href="currentUrl"
-      class="transition-colors focus:text-white text-gray-300 hover:text-white font-semibold block bg-gray-700 hover:bg-gray-600 text-center w-full mt-5 mb-4 p-2.5 rounded font-bold text-white"
+      class="transition-colors focus:text-white text-gray-300 dark:text-gray-600 hover:text-white dark:hover:text-black font-semibold block bg-gray-700 dark:bg-gray-200 hover:bg-gray-600 dark:hover:bg-gray-300 text-center w-full mt-5 mb-4 p-2.5 rounded font-bold text-white"
       target="_blank"
     >
       <svg width="16" height="16" viewBox="0 0 16 16" fill="none" xmlns="http://www.w3.org/2000/svg" class="inline fill-current mr-2">
@@ -32,11 +32,11 @@ const open = $ref(true)
       Open in new window
     </a>
     <div class="flex items-center justify-between pb-4">
-      <span class="pt-1"><a :href="info.website" class="transition-colors text-white hover:text-white font-extrabold tracking-tight text-xl">ctnicholas.dev</a></span>
+      <span class="pt-1"><a :href="info.website" class="transition-colors text-white dark:text-black hover:text-white font-extrabold tracking-tight text-xl">ctnicholas.dev</a></span>
       <ul class="flex items-center -mr-2 mt-2">
         <li v-if="info.twitterHref">
           <a
-            class="transition-colors hover:text-white cursor-pointer flex items-center justify-center p-2 text-gray-400 rounded-full mr-[-1px]"
+            class="transition-colors hover:text-white dark:hover:text-black cursor-pointer flex items-center justify-center p-2 text-gray-400 rounded-full mr-[-1px]"
             :href="info.twitterHref"
             target="_blank"
             rel="noopener noreferrer"
@@ -52,7 +52,7 @@ const open = $ref(true)
         </li>
         <li v-if="info.githubHref">
           <a
-            class="transition-colors hover:text-white cursor-pointer flex items-center justify-center p-2 text-gray-400 rounded-full"
+            class="transition-colors hover:text-white dark:hover:text-black cursor-pointer flex items-center justify-center p-2 text-gray-400 rounded-full"
             :href="info.githubHref"
             target="_blank"
             rel="noopener noreferrer"
@@ -68,7 +68,7 @@ const open = $ref(true)
         </li>
         <li v-if="info.codeSandboxHref">
           <a
-            class="transition-colors hover:text-white cursor-pointer flex items-center justify-center p-2 text-gray-400 rounded-full"
+            class="transition-colors hover:text-white dark:hover:text-black cursor-pointer flex items-center justify-center p-2 text-gray-400 rounded-full"
             :href="info.codeSandboxHref"
             target="_blank"
             rel="noopener noreferrer"

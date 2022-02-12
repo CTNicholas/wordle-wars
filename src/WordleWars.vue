@@ -1,20 +1,18 @@
 <script setup lang="ts">
 import { watchEffect } from 'vue'
 import { GameCompleteProps, GameState, LettersGuessedProps, LetterState, OtherScore, OtherUser } from './types'
-import Game from './components/Game.vue'
-import MiniScores from './components/MiniScores.vue'
-import MiniBoard from './components/MiniBoard.vue'
+import ExampleWrapper from './components/ExampleWrapper.vue'
 import MiniBoardPlaying from './components/MiniBoardPlaying.vue'
 import MiniBoardScore from './components/MiniBoardScore.vue'
-import { sortUsers } from './lib/sortUsers'
-import ExampleInfo from './components/ExampleInfo.vue'
-import ExampleWrapper from './components/ExampleWrapper.vue'
-import { copyUrlToClipboard } from './lib/copyText'
-import { getWordOfTheDay } from './lib/words'
+import MiniScores from './components/MiniScores.vue'
+import MiniBoard from './components/MiniBoard.vue'
+import Game from './components/Game.vue'
 import { useList, useOthers, usePresence } from './lib-liveblocks'
-import titleMessage from './components/TitleMessages'
-
-// TODO Add copy paste score result at end, and share button
+import { copyUrlToClipboard, copyTextToClipboard } from './lib/copyText'
+import { getWordOfTheDay } from './lib/words'
+import { sortUsers } from './lib/sortUsers'
+import messages from './lib/messages'
+import Header from './components/Header.vue'
 
 // Get word of the day
 const answer = getWordOfTheDay()
@@ -24,6 +22,7 @@ console.log('ANSWER', answer)
 let gameState: GameState = $ref(GameState.CONNECTING)
 let username = $ref(localStorage.getItem('username') || '')
 let startAnimation = $ref(false)
+let emojiScore = $ref('')
 
 // Custom Liveblocks hooks, based on React library
 const [myPresence, updateMyPresence] = usePresence()
@@ -64,7 +63,6 @@ async function enterRoom () {
     name: username,
     board: '',
     score: { [LetterState.ABSENT]: 0, [LetterState.CORRECT]: 0, [LetterState.PRESENT]: 0 },
-    position: 0,
     stage: gameState,
     rowsComplete: 0
   })
@@ -151,19 +149,27 @@ function onGameComplete ({ success, successGrid }: GameCompleteProps) {
   if (success) {
     updateMyPresence({ score: { ...myPresence.value.score, [LetterState.CORRECT]: 5 }})
   }
-  savedScores.value().push(myPresence.value as OtherUser)
+  savedScores.value()!.push(myPresence.value as OtherUser)
+  emojiScore = createEmojiScore(successGrid || '')
+}
+
+// Create emoji scores
+function createEmojiScore (successGrid: string) {
+  let resultString = 'Wordle Wars\n'
+  sortedUsers.forEach((user, index) => {
+    resultString += `${index + 1}. ${user.name}\n`
+  })
+  resultString += '\n' + successGrid
+  return resultString + '\n\nhttps://wordlewars.ctnicholas.dev'
 }
 </script>
 
 <template>
   <ExampleWrapper>
-    <ExampleInfo />
-    <header>
-      <h1>WORDLE WARS</h1>
-    </header>
+    <Header />
 
     <div v-if="gameState === GameState.CONNECTING" id="connecting">
-      <MiniBoard class="animate-ping" :large="true" :showLetters="true" :user="{ board: titleMessage.connecting }" :rows="titleMessage.connecting.length" />
+      <MiniBoard class="animate-ping" :large="true" :showLetters="true" :user="{ board: messages.connecting }" :rows="messages.connecting.length" />
     </div>
 
     <div v-if="gameState === GameState.INTRO" id="intro">
@@ -208,7 +214,7 @@ function onGameComplete ({ success, successGrid }: GameCompleteProps) {
         </div>
 
         <div v-if="startAnimation" class="start-animation">
-          <MiniBoard class="animate-ping" :large="true" :showLetters="true" :user="{ board: titleMessage.fight }" :rows="titleMessage.fight.length" />
+          <MiniBoard class="animate-ping" :large="true" :showLetters="true" :user="{ board: messages.fight }" :rows="messages.fight.length" />
         </div>
       </div>
     </div>
@@ -232,15 +238,19 @@ function onGameComplete ({ success, successGrid }: GameCompleteProps) {
     <div v-if="gameState === GameState.SCORES" id="scores">
       <div>
         <h2>
-          <span>Final scores for</span>
-          <MiniBoard :large="false" :showLetters="true" :user="{ board: titleMessage.wordToBoard(answer, 'correct') }" :rows="titleMessage.wordToBoard(answer, 'correct').length" />
+          <span>Final scores for <strong class="tracking-wider">REPAY</strong></span>
         </h2>
         <div class="divider" />
         <div class="scores-grid">
           <MiniBoardScore v-for="(other, index) in savedScores().toArray()" :user="other" :position="index + 1" :showLetters="true" />
         </div>
+        <div v-if="myPresence?.board?.length" class="divider" />
+        <button v-if="myPresence?.board?.length" @click="copyTextToClipboard(emojiScore)">
+          Copy emoji scores <svg xmlns="http://www.w3.org/2000/svg" class="inline -mt-0.5 ml-0.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" /><path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2a1 1 0 110 2h-2v-2z" /></svg>
+        </button>
         <div class="divider" />
         <div class="text-center mt-8">Come back tomorrow for a new Wordle War!</div>
+        <a href="https://ctnicholas.dev" class="block text-center mt-4 font-karla transition-colors text-black dark:text-white hover:text-black font-extrabold tracking-tight text-xl">ctnicholas.dev</a>
       </div>
     </div>
   </ExampleWrapper>
@@ -250,6 +260,10 @@ function onGameComplete ({ success, successGrid }: GameCompleteProps) {
 #connecting, #intro, #waiting, #scores {
   font-size: 18px;
   background: #eff5f0;
+}
+
+.dark #connecting, .dark #intro, .dark #waiting, .dark #scores {
+  background: #18181B;
 }
 
 #connecting {
@@ -271,7 +285,11 @@ function onGameComplete ({ success, successGrid }: GameCompleteProps) {
   flex-direction: column;
 }
 
-label  {
+.dark #intro > div, .dark #waiting > div {
+  background: #27272A;
+}
+
+label {
   font-size: 16px;
   font-weight: 500;
   opacity: 0.6;
@@ -282,6 +300,11 @@ input {
   border-radius: 4px;
   border: 1px solid lightgrey;
   box-shadow: 0 1px 2px 0 rgba(0, 0, 0, 0.05);
+}
+
+.dark input {
+  background: #18181B;
+  border-color: #52525B;
 }
 
 button {
@@ -314,18 +337,6 @@ button.button-yellow {
 
 button.button-gray {
   filter: grayscale(1);
-}
-
-.divider {
-  background: lightgrey;
-  height: 1px;
-  display: block;
-  width: 100%;
-  margin: 24px 0 0;
-}
-
-h1 {
-  letter-spacing: 1.5px;
 }
 
 h2 {
@@ -428,6 +439,7 @@ h2 {
   justify-content: center;
   align-items: stretch;
   flex-direction: column;
+  padding-top: 20px;
 }
 
 #scores > div {

@@ -27,6 +27,10 @@ const { user, showLetters = false } = defineProps<{
   color: #47504c;
 }
 
+.dark .mini-board-name {
+  color: #D4D4D8;
+}
+
 .mini-board-name > div {
   position: absolute;
   white-space: nowrap;

@@ -1,7 +1,6 @@
 <script setup lang="ts">
-import { LetterState, OtherUser } from '../types'
+import { OtherUser } from '../types'
 import ScoreCard from './ScoreCard.vue'
-import { sortUsers } from '../lib/sortUsers'
 
 const { sortedUsers, shrink = false } = defineProps<{
   sortedUsers: OtherUser[],
@@ -44,6 +43,7 @@ const { sortedUsers, shrink = false } = defineProps<{
   width: 100%;
   max-width: 350px;
   font-size: 22px;
+  padding-top: 20px;
 }
 
 .mini-score {
@@ -70,11 +70,19 @@ const { sortedUsers, shrink = false } = defineProps<{
   text-align: left;
 }
 
+.dark .mini-score-score {
+  color: #A1A1AA;
+}
+
 .mini-score-name {
   font-weight: 600;
   color: #373f3b;
   flex-grow: 1;
   text-align: center;
+}
+
+.dark .mini-score-name {
+  color: #E5E7EB;
 }
 
 

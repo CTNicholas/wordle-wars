@@ -23,6 +23,11 @@ html, body, #app {
   padding-bottom: 2px;
 }
 
+.dark #app {
+  background: #18181B;
+  color: #D4D4D8;
+}
+
 body {
   font-family: Inter, 'Clear Sans', 'Helvetica Neue', Arial, sans-serif;
   margin: 0 auto;
@@ -32,22 +37,16 @@ input, button {
   font: inherit;
 }
 
-h1 {
-  margin: 4px 0;
-  font-size: 36px;
-  font-weight: 700;
+.divider {
+  background: lightgrey;
+  height: 1px;
+  display: block;
+  width: 100%;
+  margin: 24px 0 0;
 }
 
-header {
-  border-bottom: 1px solid #ccc;
-  position: relative;
-  color: #454b45;
-  text-align: center;
-  background: #fff;
-}
-
-header + * {
-  padding-top: 20px;
+.dark .divider {
+  background: #52525B;
 }
 
 #source-link {
@@ -63,16 +62,25 @@ header + * {
 }
 
 .correct {
-  //background-color: #6aaa64 !important;
   background-color: #1bb238 !important;
 }
 
 .present {
-  //background-color: #c9b458 !important;
   background-color: #d2a207 !important;
 }
 
 .absent {
-  //background-color: #787c7e !important;
   background-color: #82918b !important;
+}
+
+.dark .correct {
+  background-color: #15a62f !important;
+}
+
+.dark .present {
+  background-color: #be9403 !important;
+}
+
+.dark .absent {
+  background-color: #3F3F46 !important;
 }

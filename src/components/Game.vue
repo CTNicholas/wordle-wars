@@ -172,7 +172,6 @@ const icons = {
   [LetterState.INITIAL]: null
 }
 
-
 function genResultGrid () {
   return board
     .slice(0, currentRowIndex + 1)
@@ -332,12 +331,28 @@ function genResultGrid () {
   border-radius: var(--border-radius);
 }
 
+.tile {
+  color: #000;
+}
+
+.dark .tile {
+  color: #fff;
+}
+
 .tile .front {
   border: 2px solid #d3d6da;
 }
 
+.dark .tile .front {
+  border-color: #3F3F46;
+}
+
 .tile.filled .front {
   border-color: #999;
+}
+
+.dark .tile.filled .front {
+  border-color: #52525B;
 }
 
 .tile .back {

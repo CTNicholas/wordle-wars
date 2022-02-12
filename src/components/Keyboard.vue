@@ -46,7 +46,7 @@ const rows = [
 
 <style scoped>
 #keyboard {
-  margin: 0px 8px 0;
+  margin: 0 8px 0;
   user-select: none;
 }
 
@@ -80,6 +80,11 @@ button {
   text-transform: uppercase;
   -webkit-tap-highlight-color: rgba(0, 0, 0, 0.3);
   transition: all 0.2s 1.5s;
+}
+
+.dark button {
+  background: #71717A;
+  color: #fff;
 }
 
 button:last-of-type {
