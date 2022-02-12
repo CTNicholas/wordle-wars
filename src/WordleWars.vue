@@ -264,7 +264,7 @@ function createEmojiScore (successGrid: string) {
 </template>
 
 <style scoped>
-#connecting, #intro, #waiting, #scores {
+#connecting, #intro, #waiting {
   font-size: 18px;
   background: #eff5f0;
 }
@@ -479,6 +479,20 @@ h2 {
 }
 
 @media (max-width: 715px) {
+  #intro, #waiting {
+    display: block;
+    background: #fff;
+  }
+
+  #intro > div, #waiting > div {
+    margin: 0 auto;
+    box-shadow: none;
+  }
+
+  #intro > div, #waiting > div {
+    background: transparent !important;
+  }
+
   #scores > div {
     max-width: 250px;
   }

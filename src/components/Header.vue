@@ -184,4 +184,10 @@ header {
     font-size: 22px;
   }
 }
+
+@media (max-width: 350px) {
+  h1 svg {
+    width: 180px;
+  }
+}
 </style>
