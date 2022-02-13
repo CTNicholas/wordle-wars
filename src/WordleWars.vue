@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import { watchEffect } from 'vue'
+import ConfettiExplosion from 'vue-confetti-explosion'
 import { GameCompleteProps, GameState, LettersGuessedProps, LetterState, OtherScore, OtherUser } from './types'
 import ExampleWrapper from './components/ExampleWrapper.vue'
 import MiniBoardPlaying from './components/MiniBoardPlaying.vue'
@@ -14,36 +15,47 @@ import { sortUsers } from './lib/sortUsers'
 import messages from './lib/messages'
 import Header from './components/Header.vue'
 
-// TODO Tidy up
 // TODO CodeSandbox
 
-// Get word of the day. Resets at UTC +00:00
-const answer = getWordOfTheDay()
+/**
+ * WORDLE WARS is a Wordle clone that allows for multiplayer gameplay. It works
+ * using Liveblocks (https://liveblocks.io), a set of tools helpful for building
+ * collaborative experiences. This demo is written 100% on the front end.
+ *
+ * The `Game` component was forked from Evan You's open-source VVordle, thanks!
+ */
 
-// Current state of game and username
+// ================================================================================
+// SETUP
+
+// Get word of the day. Resets at UTC +00:00
+const { answer, answerDay } = getWordOfTheDay()
+
+// Current state of game, username, etc
 let gameState: GameState = $ref(GameState.CONNECTING)
 let username = $ref(localStorage.getItem('username') || '')
 let startAnimation = $ref(false)
+let confettiAnimation = $ref(false)
 let emojiScore = $ref('')
 
-// Custom Liveblocks hooks, based on React library
+// Custom Liveblocks hooks, based on the Liveblocks React library
 const [myPresence, updateMyPresence] = usePresence()
 const others = useOthers()
 const savedScores = useList('scores-' + answer)
 
-// Filter all others with presence, and return their presence
+// Get all others with presence, and return their presence
 let othersPresence = $computed(() => {
   return others?.value
     ? [...others.value].filter(other => other.presence).map(other => other.presence)
     : []
 })
 
-// Filter others by odd or even number for live scores
+// Filter others by odd or even number for live scores on either side of screen
 const othersFilterOdd = (odd = true) => {
   return othersPresence.filter((o, index) => o?.score && (index % 2 === (odd ? 1 : 0)))
 }
 
-// Users sorted by score
+// Get users sorted by score
 const sortedUsers = $computed(() => {
   if (!myPresence?.value || !othersPresence) {
     return []
@@ -51,30 +63,19 @@ const sortedUsers = $computed(() => {
   return sortUsers([...othersPresence, myPresence.value].filter(user => user?.score) as OtherUser[])
 })
 
-// Updates the current game stage
-function updateGameStage (stage: GameState) {
-  if (myPresence?.value) {
-    gameState = stage
-    updateMyPresence({ stage })
-  }
-}
+// ================================================================================
+// GAME STATE
 
-// Create room with random ID, watch for other user changes
-async function enterWaitingRoom () {
-  updateMyPresence({
-    name: username,
-    board: '',
-    score: { [LetterState.ABSENT]: 0, [LetterState.CORRECT]: 0, [LetterState.PRESENT]: 0 },
-    stage: gameState,
-    rowsComplete: 0
-  })
-
-  updateGameStage(GameState.WAITING)
-  localStorage.setItem('username', username)
-}
-
-// Game events that run for everyone when current user, or other user, changes
+/**
+ * Wordle Wars has a number of different game states, such as CONNECTING, READY,
+ * COMPLETE etc. It has a decentralised method of control, meaning that each player
+ * sets their own game state, and there is no central server or host. If any player
+ * disconnects it will still run smoothly without problems. The game events below
+ * run for every player when a change occurs. The event that runs depends on the
+ * current state.
+ */
 const gameEvents: { [key in GameState]?: () => void } = {
+  // CONNECTING stage starts when player first loads page
   // Move to intro when connected to presence and scores
   [GameState.CONNECTING]: () => {
     if (myPresence?.value && savedScores?.value()) {
@@ -82,6 +83,7 @@ const gameEvents: { [key in GameState]?: () => void } = {
     }
   },
 
+  // INTRO stage starts when selecting username
   // When connected, if scores for current word found, show scores
   [GameState.INTRO]: () => {
     if (savedScores?.value()?.toArray().length) {
@@ -89,7 +91,8 @@ const gameEvents: { [key in GameState]?: () => void } = {
     }
   },
 
-  // When all are ready, start game
+  // READY stage starts after ready button pressed
+  // When all users are in the READY or PLAYING stages, start game
   [GameState.READY]: () => {
     if (allInStages([GameState.READY, GameState.PLAYING])) {
       startAnimation = true
@@ -100,7 +103,8 @@ const gameEvents: { [key in GameState]?: () => void } = {
     }
   },
 
-  // When all are complete, show scores
+  // COMPLETE stage starts on finishing the puzzle
+  // When all users are finished, show scores
   [GameState.COMPLETE]: () => {
     if (allInStages([GameState.SCORES, GameState.COMPLETE, GameState.WAITING])) {
       updateGameStage(GameState.SCORES)
@@ -108,10 +112,21 @@ const gameEvents: { [key in GameState]?: () => void } = {
   }
 }
 
-// On changes, run above game events
+// On any change, run game event for current state (defined above)
 watchEffect(() => {
   gameEvents[gameState]?.()
 })
+
+// ================================================================================
+// HELPER FUNCTIONS
+
+// Updates the current game stage for local player
+function updateGameStage (stage: GameState) {
+  if (myPresence?.value) {
+    gameState = stage
+    updateMyPresence({ stage })
+  }
+}
 
 // Returns true if every user is in one of the `stages`
 function allInStages (stages: GameState[]) {
@@ -127,6 +142,24 @@ function allInStages (stages: GameState[]) {
     return Boolean(othersReady)
   }) && myPresenceFound
 }
+
+// ================================================================================
+// EVENT FUNCTIONS
+
+// Enter the waiting room, set default presence, once username chosen
+async function enterWaitingRoom () {
+  updateMyPresence({
+    name: username,
+    board: '',
+    score: { [LetterState.ABSENT]: 0, [LetterState.CORRECT]: 0, [LetterState.PRESENT]: 0 },
+    stage: gameState,
+    rowsComplete: 0
+  })
+
+  updateGameStage(GameState.WAITING)
+  localStorage.setItem('username', username)
+}
+
 
 // When current player guesses a row of letters
 function onLettersGuessed ({ letterStates, letterBoard }: LettersGuessedProps) {
@@ -147,7 +180,7 @@ function onLettersGuessed ({ letterStates, letterBoard }: LettersGuessedProps) {
   updateMyPresence({ score: currentScore, board: letterBoard, rowsComplete: rowsComplete })
 }
 
-// When current player wins or loses game
+// When current player wins or loses game, celebrate, update score with ticks, await others winning
 function onGameComplete ({ success, successGrid }: GameCompleteProps) {
   if (!myPresence || !savedScores?.value) {
     return
@@ -155,6 +188,8 @@ function onGameComplete ({ success, successGrid }: GameCompleteProps) {
   updateGameStage(GameState.COMPLETE)
   if (success) {
     updateMyPresence({ score: { ...myPresence.value.score, [LetterState.CORRECT]: 5 }})
+    confettiAnimation = true
+    setTimeout(() => confettiAnimation = false, 3000)
   }
   savedScores.value()!.push(myPresence.value as OtherUser)
   emojiScore = createEmojiScore(successGrid || '')
@@ -162,7 +197,7 @@ function onGameComplete ({ success, successGrid }: GameCompleteProps) {
 
 // Create emoji scores
 function createEmojiScore (successGrid: string) {
-  let resultString = 'Wordle Wars\n'
+  let resultString = `Wordle Wars ${answerDay}\n\n`
   sortedUsers.forEach((user, index) => {
     resultString += `${index + 1}. ${user.name}\n`
   })
@@ -245,7 +280,7 @@ function createEmojiScore (successGrid: string) {
     <div v-if="gameState === GameState.SCORES" id="scores">
       <div>
         <h2>
-          <span>Final scores for <strong class="tracking-wider">REPAY</strong></span>
+          <span>Final scores for Day {{ answerDay }}, <strong class="tracking-wider">{{ answer.toUpperCase() }}</strong></span>
         </h2>
         <div class="divider" />
         <div class="scores-grid">
@@ -257,9 +292,14 @@ function createEmojiScore (successGrid: string) {
         </button>
         <div class="divider" />
         <div class="text-center mt-8">Come back tomorrow for a new Wordle War!</div>
-        <a href="https://ctnicholas.dev" class="block text-center mt-4 font-karla transition-colors text-black dark:text-white hover:text-black font-extrabold tracking-tight text-xl">ctnicholas.dev</a>
       </div>
     </div>
+    <a v-if="gameState === GameState.SCORES" href="https://ctnicholas.dev" class="mb-4 block text-center mt-4 font-karla transition-colors text-black dark:text-white hover:text-black font-extrabold tracking-tight text-xl">ctnicholas.dev</a>
+
+    <div v-if="confettiAnimation" class="confetti-wrapper">
+      <ConfettiExplosion />
+    </div>
+
   </ExampleWrapper>
 </template>
 
@@ -466,10 +506,21 @@ h2 {
 .scores-grid {
   width: 100%;
   display: grid;
-  margin: 40px 0;
+  margin: 28px 0 40px;
   grid-template-columns: repeat(2, 1fr);
   grid-auto-rows: auto;
   grid-gap: 40px;
+}
+
+.confetti-wrapper {
+  position: fixed;
+  top: 0;
+  right: 0;
+  bottom: 0;
+  left: 0;
+  display: flex;
+  justify-content: center;
+  align-items: center;
 }
 
 @media (max-width: 415px) {
