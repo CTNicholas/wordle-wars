@@ -1,7 +1,7 @@
 export const info = {
   hide: false,
   title: 'Wordle wars',
-  description: 'Open in multiple windows, or share the link, to play a Wordle clone live with others.',
+  description: 'Share the link to play this Wordle clone live with others. Open it in a new window to try it against yourself.',
   githubHref: 'https://github.com/CTNicholas/wordle-wars',
   codeSandboxHref: '',
   twitterHref: 'https://twitter.com/@ctnicholasdev',

@@ -1,6 +1,6 @@
 <script setup lang="ts">
 import { onUnmounted } from 'vue'
-import { allWords } from '../lib/words'
+import { allWords } from '../words'
 import Keyboard from './Keyboard.vue'
 import { GameCompleteProps, LettersGuessedProps, LettersGuessed, LetterState } from '../types'
 

@@ -84,3 +84,7 @@ input, button {
 .dark .absent {
   background-color: #3F3F46 !important;
 }
+
+.link {
+  @apply text-green-600 dark:text-green-500 font-semibold;
+}
