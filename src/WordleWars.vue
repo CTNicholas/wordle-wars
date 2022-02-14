@@ -197,7 +197,7 @@ function onGameComplete ({ success, successGrid }: GameCompleteProps) {
 
 // Create emoji scores
 function createEmojiScore (successGrid: string) {
-  let resultString = `Wordle Wars ${answerDay}\n\n`
+  let resultString = `#WordleWars #${answerDay}\n\n`
   sortedUsers.forEach((user, index) => {
     resultString += `${index + 1}. ${user.name}\n`
   })
@@ -210,100 +210,122 @@ function createEmojiScore (successGrid: string) {
   <ExampleWrapper>
     <Header />
 
-    <div v-if="gameState === GameState.CONNECTING" id="connecting">
-      <MiniBoard class="animate-ping" :large="true" :showLetters="true" :user="{ board: messages.connecting }" :rows="messages.connecting.length" />
-    </div>
-
-    <div v-if="gameState === GameState.INTRO" id="intro">
-      <div>
-        <h2>Enter your name</h2>
-        <form @submit.prevent="enterWaitingRoom">
-          <label for="set-username">Username</label>
-          <input type="text" id="set-username" v-model="username" autocomplete="off" required />
-          <button>Join game</Button>
-        </form>
+    <div class="transition-wrapper">
+      <div v-if="gameState === GameState.CONNECTING" id="connecting">
+        <MiniBoard class="animate-ping" :large="true" :showLetters="true" :user="{ board: messages.connecting }" :rows="messages.connecting.length" />
       </div>
-    </div>
 
-    <div v-if="gameState === GameState.WAITING || gameState === GameState.READY" id="waiting">
-      <div>
-        <h2>Waiting for players</h2>
-        <div class="waiting-list">
-          <div class="waiting-player">
-            <span>{{ myPresence.name }} (you)</span>
-            <div :class="[myPresence.stage === GameState.READY ? 'waiting-player-ready' : 'waiting-player-waiting']">
-              {{ myPresence.stage === GameState.READY ? 'Ready' : 'Waiting' }}
+      <Transition name="fade">
+        <div v-if="gameState === GameState.INTRO" id="intro">
+          <div>
+            <h2>Enter your name</h2>
+            <form @submit.prevent="enterWaitingRoom">
+              <label for="set-username">Username</label>
+              <input type="text" id="set-username" v-model="username" autocomplete="off" required />
+              <button>Join game</Button>
+            </form>
+          </div>
+        </div>
+      </Transition>
+
+      <div v-if="gameState === GameState.WAITING || gameState === GameState.READY" id="waiting">
+        <div>
+          <h2>Waiting for players</h2>
+          <div class="waiting-list">
+            <div class="waiting-player">
+              <span>{{ myPresence.name }} (you)</span>
+              <div :class="[myPresence.stage === GameState.READY ? 'waiting-player-ready' : 'waiting-player-waiting']">
+                {{ myPresence.stage === GameState.READY ? 'Ready' : 'Waiting' }}
+              </div>
             </div>
-          </div>
-          <div v-for="other in othersPresence" class="waiting-player">
-            <span v-if="other.name">{{ other.name }}</span>
-            <span v-else><i>Selecting name...</i></span>
-            <div :class="[other.stage === GameState.WAITING || other.stage === GameState.INTRO ? 'waiting-player-waiting' : 'waiting-player-ready']">
-              {{ other.stage === GameState.READY ? 'Ready' : other.stage === GameState.PLAYING ? 'Playing' : 'Waiting' }}
+            <div v-for="other in othersPresence" class="waiting-player">
+              <span v-if="other.name">{{ other.name }}</span>
+              <span v-else><i>Selecting name...</i></span>
+              <div :class="[other.stage === GameState.WAITING || other.stage === GameState.INTRO ? 'waiting-player-waiting' : 'waiting-player-ready']">
+                {{ other.stage === GameState.READY ? 'Ready' : other.stage === GameState.PLAYING ? 'Playing' : 'Waiting' }}
+              </div>
             </div>
+            <button v-if="myPresence.stage !== GameState.READY" @click="updateGameStage(GameState.READY)" class="">
+              Ready to start?
+            </button>
+            <button v-else @click="updateGameStage(GameState.WAITING)" class="button-yellow">
+              Not ready?
+            </button>
+            <div class="divider" />
+            <button class="button-gray" @click="copyUrlToClipboard">
+              Copy link <svg xmlns="http://www.w3.org/2000/svg" class="inline -mt-0.5 ml-0.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" /><path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2a1 1 0 110 2h-2v-2z" /></svg>
+            </button>
+            <div class="small-center-message">Share link to play together</div>
           </div>
-          <button v-if="myPresence.stage !== GameState.READY" @click="updateGameStage(GameState.READY)" class="">
-            Ready to start?
-          </button>
-          <button v-else @click="updateGameStage(GameState.WAITING)" class="button-yellow">
-            Not ready?
-          </button>
-          <div class="divider" />
-          <button class="button-gray" @click="copyUrlToClipboard">
-            Copy link <svg xmlns="http://www.w3.org/2000/svg" class="inline -mt-0.5 ml-0.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" /><path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2a1 1 0 110 2h-2v-2z" /></svg>
-          </button>
-          <div class="small-center-message">Share link to play together</div>
-        </div>
 
-        <div v-if="startAnimation" class="start-animation">
-          <MiniBoard class="animate-ping" :large="true" :showLetters="true" :user="{ board: messages.fight }" :rows="messages.fight.length" />
+          <div v-if="startAnimation" class="start-animation">
+            <MiniBoard class="animate-ping" :large="true" :showLetters="true" :user="{ board: messages.fight }" :rows="messages.fight.length" />
+          </div>
         </div>
       </div>
-    </div>
 
-    <div v-if="gameState === GameState.PLAYING || gameState === GameState.COMPLETE" id="playing">
-      <MiniScores :sortedUsers="sortedUsers" :shrink="true" />
-      <Game :answer="answer" @lettersGuessed="onLettersGuessed" @gameComplete="onGameComplete">
-        <template v-slot:board-left>
-          <div class="mini-board-container">
-            <MiniBoardPlaying v-for="other in othersFilterOdd(true)" :user="other" :showLetters="gameState === GameState.COMPLETE" />
-          </div>
-        </template>
-        <template v-slot:board-right>
-          <div class="mini-board-container">
-            <MiniBoardPlaying v-for="other in othersFilterOdd(false)" :user="other" :showLetters="gameState === GameState.COMPLETE" />
-          </div>
-        </template>
-      </Game>
-    </div>
 
-    <div v-if="gameState === GameState.SCORES" id="scores">
-      <div>
-        <h2>
-          <span>Final scores for Day {{ answerDay }}, <strong class="tracking-wider">{{ answer.toUpperCase() }}</strong></span>
-        </h2>
-        <div class="divider" />
-        <div class="scores-grid">
-          <MiniBoardScore v-for="(other, index) in savedScores().toArray()" :user="other" :position="index + 1" :showLetters="true" />
-        </div>
-        <div v-if="myPresence?.board?.length" class="divider" />
-        <button v-if="myPresence?.board?.length" @click="copyTextToClipboard(emojiScore)">
-          Copy emoji scores <svg xmlns="http://www.w3.org/2000/svg" class="inline -mt-0.5 ml-0.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" /><path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2a1 1 0 110 2h-2v-2z" /></svg>
-        </button>
-        <div class="divider" />
-        <div class="text-center mt-8">Come back tomorrow for a new Wordle War!</div>
+      <div v-if="gameState === GameState.PLAYING || gameState === GameState.COMPLETE" id="playing">
+        <MiniScores :sortedUsers="sortedUsers" :shrink="true" />
+        <Game :answer="answer" @lettersGuessed="onLettersGuessed" @gameComplete="onGameComplete">
+          <template v-slot:board-left>
+            <div class="mini-board-container">
+              <MiniBoardPlaying v-for="other in othersFilterOdd(true)" :user="other" :showLetters="gameState === GameState.COMPLETE" />
+            </div>
+          </template>
+          <template v-slot:board-right>
+            <div class="mini-board-container">
+              <MiniBoardPlaying v-for="other in othersFilterOdd(false)" :user="other" :showLetters="gameState === GameState.COMPLETE" />
+            </div>
+          </template>
+        </Game>
       </div>
-    </div>
-    <a v-if="gameState === GameState.SCORES" href="https://ctnicholas.dev" class="mb-4 block text-center mt-4 font-karla transition-colors text-black dark:text-white hover:text-black font-extrabold tracking-tight text-xl">ctnicholas.dev</a>
 
-    <div v-if="confettiAnimation" class="confetti-wrapper">
-      <ConfettiExplosion />
+
+      <Transition name="fade-scores">
+        <div v-if="gameState === GameState.SCORES" id="scores">
+          <div>
+            <h2>
+              <span>Final scores for Day {{ answerDay }}, <strong class="tracking-wider">{{ answer.toUpperCase() }}</strong></span>
+            </h2>
+            <div class="divider" />
+            <div class="scores-grid">
+              <MiniBoardScore v-for="(other, index) in savedScores().toArray()" :user="other" :position="index + 1" :showLetters="true" />
+            </div>
+            <button v-if="myPresence?.board?.length" @click="copyTextToClipboard(emojiScore)">
+              Copy emoji scores <svg xmlns="http://www.w3.org/2000/svg" class="inline -mt-0.5 ml-0.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" /><path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2a1 1 0 110 2h-2v-2z" /></svg>
+            </button>
+            <div class="divider" />
+            <div class="text-center mt-6">
+              Come back tomorrow for a new Wordle War!
+            </div>
+            <div class="text-center mt-2">
+              Follow me on <a class="font-semibold text-green-600 dark:text-green-500" href="https://twitter.com/ctnicholasdev">Twitter</a> for more fun experiments.
+            </div>
+
+          </div>
+        </div>
+      </Transition>
+
+      <div v-if="confettiAnimation" class="confetti-wrapper">
+        <ConfettiExplosion :colors="['#1bb238', '#d2a207', '#82918b']" />
+      </div>
+
     </div>
 
   </ExampleWrapper>
 </template>
 
 <style scoped>
+.transition-wrapper {
+  position: relative;
+  height: 100%;
+}
+
+.transition-wrapper > div {
+  min-height: 100%;
+}
+
 #connecting, #intro, #waiting {
   font-size: 18px;
   background: #eff5f0;
@@ -479,7 +501,6 @@ h2 {
   align-items: center;
 }
 
-
 #scores {
   flex-grow: 1;
   display: flex;
@@ -493,7 +514,8 @@ h2 {
   max-width: 538px;
   width: 100%;
   margin: 0 auto;
-  padding-bottom: 30px;
+  padding-bottom: 60px;
+  position: relative;
 }
 
 #scores h2 {
@@ -506,7 +528,7 @@ h2 {
 .scores-grid {
   width: 100%;
   display: grid;
-  margin: 28px 0 40px;
+  margin: 28px 0 10px;
   grid-template-columns: repeat(2, 1fr);
   grid-auto-rows: auto;
   grid-gap: 40px;
@@ -514,13 +536,42 @@ h2 {
 
 .confetti-wrapper {
   position: fixed;
-  top: 0;
+  top: -15%;
   right: 0;
   bottom: 0;
   left: 0;
   display: flex;
   justify-content: center;
   align-items: center;
+  z-index: 50;
+}
+
+.fade-enter-active,
+.fade-leave-active,
+.fade-scores-enter-active,
+.fade-scores-leave-active {
+  transition: opacity 0.5s ease;
+  position: absolute;
+  left: 0;
+  top: 0;
+}
+
+.fade-enter-from,
+.fade-leave-to,
+.fade-scores-enter-from,
+.fade-scores-leave-to {
+  position: absolute;
+  left: 0;
+  top: 0;
+  opacity: 0;
+}
+
+.fade-scores-enter-active,
+.fade-scores-leave-active,
+.fade-scores-enter-from,
+.fade-scores-leave-to {
+  left: 50%;
+  transform: translateX(-50%);
 }
 
 @media (max-width: 415px) {

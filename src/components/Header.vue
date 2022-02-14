@@ -149,6 +149,15 @@ function toggleInfoOpen () {
 
 button {
   padding: 15px;
+  transition: background-color 0.1s ease-in-out;
+}
+
+button:hover {
+  background-color: rgba(0, 0, 0, 0.1);
+}
+
+.dark button:hover {
+  background-color: rgba(255, 255, 255, 0.1);
 }
 
 p {
@@ -172,7 +181,7 @@ header {
   color: #000;
   text-align: center;
   background: #fff;
-  padding: 0 5px;
+  padding: 1px 0;
 }
 
 .dark header {

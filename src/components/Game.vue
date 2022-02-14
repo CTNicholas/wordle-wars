@@ -187,8 +187,8 @@ function genResultGrid () {
   </Transition>
   <div id="board-wrapper">
     <div id="board">
-      <div v-if="message" class="board-message backdrop-blur">
-        <button @click="message = ''" class="absolute right-6 top-3 text-gray-300 hover:text-gray-100 focus:text-gray-100 w-8 h-8 flex items-center justify-center -mr-3 rounded-full">
+      <div v-if="message" :class="['board-message', 'backdrop-blur', success && 'board-message-success']">
+        <button v-if="success" @click="message = ''" class="absolute right-6 top-3 text-gray-300 hover:text-gray-100 focus:text-gray-100 w-8 h-8 flex items-center justify-center -mr-3 rounded-full">
           <span class="sr-only">Close dialog</span>
           <svg class="w-6 h-6" width="16" height="16" viewBox="0 0 16 16" fill="currentColor" xmlns="http://www.w3.org/2000/svg">
             <path fill-rule="evenodd" clip-rule="evenodd" d="M2.96967 11.9697L11.9697 2.96967L13.0303 4.03033L4.03033 13.0303L2.96967 11.9697Z"></path>
@@ -198,7 +198,7 @@ function genResultGrid () {
         <div class="board-message-main">
           {{ message }}
         </div>
-        <div>
+        <div v-if="success">
           Waiting for other players to finish...
         </div>
       </div>
@@ -287,6 +287,31 @@ function genResultGrid () {
 }
 
 .board-message {
+  white-space: nowrap;
+  font-size: 16px;
+  position: absolute;
+  left: 50%;
+  top: 80px;
+  color: #fff;
+  background-color: rgba(0, 0, 0, 0.80);
+  padding: 16px 20px;
+  z-index: 2;
+  border-radius: var(--border-radius);
+  transform: translateX(-50%);
+  transition: opacity 0.3s ease-out;
+  font-weight: 600;
+}
+
+.board-message.board-message-success {
+  white-space: normal;
+  font-size: 16px;
+  width: 100%;
+  max-width: 80%;
+}
+
+/*
+.board-message.board-message-success {
+  white-space: normal;
   position: absolute;
   top: 0;
   right: 0;
@@ -305,11 +330,14 @@ function genResultGrid () {
   transition: opacity 0.3s ease-out;
   font-size: 18px;
   text-align: center;
+  transform: none;
 }
+ */
 
-.board-message-main {
-  font-size: 24px;
+.board-message-success .board-message-main {
+  font-size: 21px;
   font-weight: 500;
+  margin-bottom: 10px;
 }
 
 .message.v-leave-to {
