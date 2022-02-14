@@ -37,6 +37,7 @@ let username = $ref(localStorage.getItem('username') || '')
 let startAnimation = $ref(false)
 let confettiAnimation = $ref(false)
 let emojiScore = $ref('')
+let copyLinkMessage = $ref('')
 
 // Custom Liveblocks hooks, based on the Liveblocks React library
 const [myPresence, updateMyPresence] = usePresence()
@@ -195,6 +196,13 @@ function onGameComplete ({ success, successGrid }: GameCompleteProps) {
   emojiScore = createEmojiScore(successGrid || '')
 }
 
+// Copy link on click button
+function onCopyLink () {
+  copyUrlToClipboard()
+  copyLinkMessage = 'Copied'
+  setTimeout(() => copyLinkMessage = '', 1400)
+}
+
 // Create emoji scores
 function createEmojiScore (successGrid: string) {
   let resultString = `#WordleWars #${answerDay}\n\n`
@@ -215,18 +223,21 @@ function createEmojiScore (successGrid: string) {
         <MiniBoard class="animate-ping" :large="true" :showLetters="true" :user="{ board: messages.connecting }" :rows="messages.connecting.length" />
       </div>
 
-      <Transition name="fade">
-        <div v-if="gameState === GameState.INTRO" id="intro">
-          <div>
-            <h2>Enter your name</h2>
-            <form @submit.prevent="enterWaitingRoom">
-              <label for="set-username">Username</label>
-              <input type="text" id="set-username" v-model="username" autocomplete="off" required />
-              <button>Join game</Button>
-            </form>
-          </div>
+      <div v-if="gameState === GameState.INTRO" id="intro">
+        <div>
+          <h2>Enter your name</h2>
+          <form @submit.prevent="enterWaitingRoom">
+            <label for="set-username">Username</label>
+            <input type="text" id="set-username" v-model="username" autocomplete="off" required />
+            <button>Join game</Button>
+          </form>
+          <div class="divider" />
+          <button class="button-gray" @click="onCopyLink" :disabled="!!copyLinkMessage">
+            {{ copyLinkMessage || 'Copy link' }} <svg xmlns="http://www.w3.org/2000/svg" class="inline -mt-0.5 ml-0.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" /><path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2a1 1 0 110 2h-2v-2z" /></svg>
+          </button>
+          <div class="small-center-message">Share link to play together</div>
         </div>
-      </Transition>
+      </div>
 
       <div v-if="gameState === GameState.WAITING || gameState === GameState.READY" id="waiting">
         <div>
@@ -252,8 +263,8 @@ function createEmojiScore (successGrid: string) {
               Not ready?
             </button>
             <div class="divider" />
-            <button class="button-gray" @click="copyUrlToClipboard">
-              Copy link <svg xmlns="http://www.w3.org/2000/svg" class="inline -mt-0.5 ml-0.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" /><path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2a1 1 0 110 2h-2v-2z" /></svg>
+            <button class="button-gray" @click="onCopyLink">
+              {{ copyLinkMessage || 'Copy link' }} <svg xmlns="http://www.w3.org/2000/svg" class="inline -mt-0.5 ml-0.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" /><path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2a1 1 0 110 2h-2v-2z" /></svg>
             </button>
             <div class="small-center-message">Share link to play together</div>
           </div>
@@ -343,12 +354,11 @@ function createEmojiScore (successGrid: string) {
 }
 
 #intro > div, #waiting > div {
-  width: 330px;
+  width: 320px;
   max-width: 100%;
   background: #fff;
-  padding: 40px 40px 30px 40px;
+  padding: 40px 35px 30px 35px;
   border-radius: 4px;
-  box-shadow: 0 1px 3px 0 rgba(0, 0, 0, 0.1),0 1px 2px 0 rgba(0, 0, 0, 0.06);
   display: flex;
   align-items: center;
   flex-direction: column;
@@ -383,9 +393,13 @@ button {
   border-radius: 4px;
   color: #fff;
   font-weight: 600;
-  transition: background-color ease-in-out 150ms;
+  transition: background-color ease-in-out 150ms, opacity 150ms ease-in-out;
   margin-top: 24px;
   margin-bottom: 0;
+}
+
+button:disabled {
+  background-color: #1bb238 !important;
 }
 
 button:hover {
@@ -447,6 +461,10 @@ h2 {
   display: block;
   margin-bottom: 12px;
   width: 100%;
+}
+
+#intro form > *:last-child {
+  margin-bottom: 0;
 }
 
 #intro form label {

@@ -149,11 +149,11 @@ function toggleInfoOpen () {
 
 button {
   padding: 15px;
-  transition: background-color 0.1s ease-in-out;
+  transition: background-color 150ms ease-in-out;
 }
 
 button:hover {
-  background-color: rgba(0, 0, 0, 0.1);
+  background-color: rgba(0, 0, 0, 0.06);
 }
 
 .dark button:hover {
