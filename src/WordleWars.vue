@@ -15,8 +15,6 @@ import { sortUsers } from './lib/sortUsers'
 import messages from './lib/messages'
 import Header from './components/Header.vue'
 
-// TODO CodeSandbox
-
 /**
  * WORDLE WARS is a Wordle clone that allows for multiplayer gameplay. It works
  * using Liveblocks (https://liveblocks.io), a set of tools helpful for building
@@ -319,7 +317,9 @@ function createEmojiScore (successGrid: string) {
       </Transition>
 
       <div v-if="confettiAnimation" class="confetti-wrapper">
-        <ConfettiExplosion :colors="['#1bb238', '#d2a207', '#82918b']" />
+        <div>
+          <ConfettiExplosion :colors="['#1bb238', '#d2a207', '#82918b']" />
+        </div>
       </div>
 
     </div>
