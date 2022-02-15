@@ -70,7 +70,7 @@ const hasLiveblocksSecretKey= import.meta.env.VITE_hasLiveblocksSecretKey || imp
             <code class="relative font-mono bg-black shadow-thin-border-300 rounded-lg my-4 text-sm text-gray-200 px-2 py-1.5">
               .env</code> and add your
           Liveblocks secret as an environment variable:
-          <pre class="relative font-mono bg-black shadow-thin-border-300 rounded-lg my-4 text-sm text-gray-200 pt-2 px-4" style="min-height: 36px; line-height: 1.5em; max-width: 400px;"><code>VITE_LIVEBLOCKS_PUBLIC_KEY=sk_public_yourkey</code></pre>
+          <pre class="relative font-mono bg-black shadow-thin-border-300 rounded-lg my-4 text-sm text-gray-200 pt-2 px-4" style="min-height: 36px; line-height: 1.5em; max-width: 400px;"><code>VITE_LIVEBLOCKS_PUBLIC_KEY=pk_live_yourkey</code></pre>
         </li>
         <li class="mb-2">
           Run

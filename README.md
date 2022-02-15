@@ -9,7 +9,7 @@ This repo shows how to build a multiplayer Wordle clone with [Liveblocks](https:
 
 It's forked from [VVowrdle](https://github.com/yyx990803/vue-wordle) created by Evan You (@yyx990803), with some multiplayer and extra styling added.
 You can only see your opponent's letters after you've got the word of the day. Scores are saved at the end of the war,
-and a new Wordle becomes available the next day.
+and a new Wordle becomes available at UTC±00:00 every day. It features a dark mode.
 
 ![Wordle wars screenshot](https://wordlewars.ctnicholas.dev/screenshot-visible.png)
 
@@ -29,7 +29,7 @@ This repository is open sourced for learning purposes only - the original creato
 
 ### Run examples on CodeSandbox
 
-- Open this repository on CodeSandbox with this [link](https://codesandbox.io/s/live-basket-with-liveblocks-next-js-xh3bm)
+- Open this repository on CodeSandbox with this [link](https://codesandbox.io/s/wordle-wars-with-liveblocks-and-vite-0hhdi)
 
 - Create an account on [liveblocks.io](https://liveblocks.io/dashboard)
 
