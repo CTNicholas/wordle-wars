@@ -301,7 +301,7 @@ function createEmojiScore (successGrid: string) {
             </h2>
             <div class="divider" />
             <div class="scores-grid">
-              <MiniBoardScore v-for="(other, index) in savedScores().toArray()" :user="other" :position="index + 1" :showLetters="true" />
+              <MiniBoardScore v-for="(other, index) in sortUsers(savedScores().toArray())" :user="other" :position="index + 1" :showLetters="true" />
             </div>
             <button v-if="myPresence?.board?.length" @click="copyTextToClipboard(emojiScore)">
               Copy emoji scores <svg xmlns="http://www.w3.org/2000/svg" class="inline -mt-0.5 ml-0.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" /><path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2a1 1 0 110 2h-2v-2z" /></svg>
@@ -562,26 +562,6 @@ h2 {
   justify-content: center;
   align-items: center;
   z-index: 50;
-}
-
-.fade-enter-active,
-.fade-leave-active,
-.fade-scores-enter-active,
-.fade-scores-leave-active {
-  transition: opacity 0.5s ease;
-  position: absolute;
-  left: 0;
-  top: 0;
-}
-
-.fade-enter-from,
-.fade-leave-to,
-.fade-scores-enter-from,
-.fade-scores-leave-to {
-  position: absolute;
-  left: 0;
-  top: 0;
-  opacity: 0;
 }
 
 .fade-scores-enter-active,

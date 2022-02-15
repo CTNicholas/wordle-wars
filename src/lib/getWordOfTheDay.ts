@@ -13,7 +13,7 @@ export function getWordOfTheDay () {
   while (day > answers.length) {
     day -= answers.length
   }
-  return { answer: answers[day], answerDay: day }
+  return { answer: answers[day], answerDay: day + 1 }
 }
 
 function dateToUtc (d: Date) {
