@@ -6,10 +6,11 @@ const hasLiveblocksSecretKey= import.meta.env.VITE_hasLiveblocksSecretKey || imp
 <template>
   <slot v-if="hasLiveblocksSecretKey" />
   <div v-else>
-    <div v-if="isRunningOnCodeSandbox">
-      <p class="mt-12 mb-6">
+    <div v-if="isRunningOnCodeSandbox" class="container mx-auto px-8">
+      <h1 class="text-3xl font-semibold mt-24 mb-2">Welcome to this Liveblocks Vue example</h1>
+      <p class="mt-8 mb-6">
         To run
-        <a href="https://liveblocks.io" target="_blank" rel="noreferrer">
+        <a href="https://liveblocks.io" target="_blank" rel="noreferrer" class="text-orange-600 dark:text-orange:500 font-semibold">
           Liveblocks
         </a>
         examples on CodeSandbox
@@ -17,11 +18,11 @@ const hasLiveblocksSecretKey= import.meta.env.VITE_hasLiveblocksSecretKey || imp
       <ul class="list-disc list-inside">
         <li class="mb-2">
           Create an account on
-          <a href="https://liveblocks.io" target="_blank" rel="noreferrer">
+          <a href="https://liveblocks.io" target="_blank" rel="noreferrer" class="text-orange-600 dark:text-orange:500 font-semibold">
             liveblocks.io
           </a>
         </li>
-        <li class="mb-2">Copy your secret key from the administration</li>
+        <li class="mb-2"> Copy your secret key from the administration</li>
         <li class="mb-2">
           Add a
           <a
@@ -32,11 +33,8 @@ const hasLiveblocksSecretKey= import.meta.env.VITE_hasLiveblocksSecretKey || imp
             secret key
           </a>
           named
-          <pre class="relative inline-block font-mono bg-black shadow-thin-border-300 rounded-lg text-sm text-gray-200 p-2 pl-0" style="min-height: 36px; line-height: 1.5em;">
-            <code>
-              LIVEBLOCKS_SECRET_KEY
-            </code>
-          </pre>
+            <code class="relative font-mono bg-black shadow-thin-border-300 rounded-lg my-4 text-sm text-gray-200 px-2 py-1.5">
+              VITE_LIVEBLOCKS_PUBLIC_KEY</code>
           to your CodeSandbox sandbox.
         </li>
         <li class="mb-2">
@@ -44,10 +42,11 @@ const hasLiveblocksSecretKey= import.meta.env.VITE_hasLiveblocksSecretKey || imp
         </li>
       </ul>
     </div>
-    <div v-else>
-      <p class="mt-12 mb-6">
+    <div v-else class="container mx-auto px-8">
+      <h1 class="text-3xl font-semibold mt-24 mb-2">Welcome to this Liveblocks Vue example</h1>
+      <p class="mt-8 mb-6">
         To run
-        <a href="https://liveblocks.io" target="_blank" rel="noreferrer">
+        <a href="https://liveblocks.io" target="_blank" rel="noreferrer" class="text-orange-600 dark:text-orange:500 font-semibold">
           Liveblocks
         </a>
         examples locally
@@ -55,40 +54,29 @@ const hasLiveblocksSecretKey= import.meta.env.VITE_hasLiveblocksSecretKey || imp
       <ul class="list-disc list-inside">
         <li class="mb-2">
           Install all dependencies with
-          <pre class="relative font-mono bg-black shadow-thin-border-300 rounded-lg my-4 text-sm text-gray-200 pt-2" style="min-height: 36px; line-height: 1.5em; max-width: 400px;">
-            <code>
-              npm install
-            </code>
-          </pre>
+          <code class="relative font-mono bg-black shadow-thin-border-300 rounded-lg my-4 text-sm text-gray-200 px-2 py-1.5">
+            npm install
+          </code>
         </li>
         <li class="mb-2">
           Create an account on
-          <a href="https://liveblocks.io" target="_blank" rel="noreferrer">
+          <a href="https://liveblocks.io" target="_blank" rel="noreferrer" class="text-orange-600 dark:text-orange:500 font-semibold">
             liveblocks.io
           </a>
         </li>
         <li class="mb-2">Copy your secret key from the administration</li>
         <li class="mb-2">
           Create a file named
-          <pre class="relative font-mono bg-black shadow-thin-border-300 rounded-lg my-4 text-sm text-gray-200 pt-2" style="min-height: 36px; line-height: 1.5em; max-width: 400px;">
-            <code>
-              .env
-            </code>
-          </pre>and add your
-          Liveblocks secret as environment variable
-          <pre class="relative font-mono bg-black shadow-thin-border-300 rounded-lg my-4 text-sm text-gray-200 pt-2" style="min-height: 36px; line-height: 1.5em; max-width: 400px;">
-            <code>
-              LIVEBLOCKS_SECRET_KEY=sk_test_yourkey
-            </code>
-          </pre>
+            <code class="relative font-mono bg-black shadow-thin-border-300 rounded-lg my-4 text-sm text-gray-200 px-2 py-1.5">
+              .env</code> and add your
+          Liveblocks secret as an environment variable:
+          <pre class="relative font-mono bg-black shadow-thin-border-300 rounded-lg my-4 text-sm text-gray-200 pt-2 px-4" style="min-height: 36px; line-height: 1.5em; max-width: 400px;"><code>VITE_LIVEBLOCKS_PUBLIC_KEY=sk_public_yourkey</code></pre>
         </li>
         <li class="mb-2">
-          Run the following command and you should be good to go
-           <pre class="relative font-mono bg-black shadow-thin-border-300 rounded-lg my-4 text-sm text-gray-200 pt-2" style="min-height: 36px; line-height: 1.5em; max-width: 400px;">
-            <code>
-              npm run dev
-            </code>
-          </pre>
+          Run
+          <code class="relative font-mono bg-black shadow-thin-border-300 rounded-lg my-4 text-sm text-gray-200 px-2 py-1.5">
+            npm run dev</code>
+          and you should be good to go.
         </li>
       </ul>
     </div>
