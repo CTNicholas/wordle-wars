@@ -1,6 +1,6 @@
 <template>
   <h1>
-    Wordle Wars
+    Wordle <span>Wars</span>
   </h1>
 </template>
 
@@ -13,15 +13,16 @@ h1 {
   font-weight: 700;
 }
 
-@media (max-width: 415px) {
+@media (max-width: 500px) {
   h1 {
     font-size: 22px;
+    padding-top: 2.5px;
   }
 }
 
-@media (max-width: 350px) {
-  h1 svg {
-    width: 180px;
+@media (max-width: 370px) {
+  span {
+    display: none;
   }
 }
 </style>

@@ -152,7 +152,8 @@ async function enterWaitingRoom () {
     board: '',
     score: { [LetterState.ABSENT]: 0, [LetterState.CORRECT]: 0, [LetterState.PRESENT]: 0 },
     stage: gameState,
-    rowsComplete: 0
+    rowsComplete: 0,
+    timeFinished: Infinity
   })
 
   updateGameStage(GameState.WAITING)
@@ -185,11 +186,13 @@ function onGameComplete ({ success, successGrid }: GameCompleteProps) {
     return
   }
   updateGameStage(GameState.COMPLETE)
+  let updatedPresence: { timeFinished: number, score?: {} } = { timeFinished: Number(Date.now()) }
   if (success) {
-    updateMyPresence({ score: { ...myPresence.value.score, [LetterState.CORRECT]: 5 }})
+    updatedPresence = { ...updatedPresence, score: { ...myPresence.value.score, [LetterState.CORRECT]: 5 }}
     confettiAnimation = true
     setTimeout(() => confettiAnimation = false, 3000)
   }
+  updateMyPresence(updatedPresence)
   savedScores.value()!.push(myPresence.value as OtherUser)
   emojiScore = createEmojiScore(successGrid || '')
 }
@@ -227,10 +230,10 @@ function createEmojiScore (successGrid: string) {
           <form @submit.prevent="enterWaitingRoom">
             <label for="set-username">Username</label>
             <input type="text" id="set-username" v-model="username" autocomplete="off" required />
-            <button>Join game</Button>
+            <button class="ready-button">Join game</Button>
           </form>
           <div class="divider" />
-          <button class="button-gray" @click="onCopyLink" :disabled="!!copyLinkMessage">
+          <button class="copy-button" @click="onCopyLink" :disabled="!!copyLinkMessage">
             {{ copyLinkMessage || 'Copy link' }} <svg xmlns="http://www.w3.org/2000/svg" class="inline -mt-0.5 ml-0.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" /><path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2a1 1 0 110 2h-2v-2z" /></svg>
           </button>
           <div class="small-center-message">Share link to play together</div>
@@ -254,14 +257,14 @@ function createEmojiScore (successGrid: string) {
                 {{ other.stage === GameState.READY ? 'Ready' : other.stage === GameState.PLAYING ? 'Playing' : 'Waiting' }}
               </div>
             </div>
-            <button v-if="myPresence.stage !== GameState.READY" @click="updateGameStage(GameState.READY)" class="">
+            <button v-if="myPresence.stage !== GameState.READY" @click="updateGameStage(GameState.READY)" class="ready-button">
               Ready to start?
             </button>
-            <button v-else @click="updateGameStage(GameState.WAITING)" class="button-yellow">
+            <button v-else @click="updateGameStage(GameState.WAITING)" class="unready-button">
               Not ready?
             </button>
             <div class="divider" />
-            <button class="button-gray" @click="onCopyLink">
+            <button class="copy-button" @click="onCopyLink">
               {{ copyLinkMessage || 'Copy link' }} <svg xmlns="http://www.w3.org/2000/svg" class="inline -mt-0.5 ml-0.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" /><path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2a1 1 0 110 2h-2v-2z" /></svg>
             </button>
             <div class="small-center-message">Share link to play together</div>
@@ -301,7 +304,7 @@ function createEmojiScore (successGrid: string) {
             <div class="scores-grid">
               <MiniBoardScore v-for="(other, index) in sortUsers(savedScores().toArray())" :user="other" :position="index + 1" :showLetters="true" />
             </div>
-            <button v-if="myPresence?.board?.length" @click="copyTextToClipboard(emojiScore)">
+            <button v-if="myPresence?.board?.length" @click="copyTextToClipboard(emojiScore)" class="ready-button">
               Copy emoji scores <svg xmlns="http://www.w3.org/2000/svg" class="inline -mt-0.5 ml-0.5 h-5 w-5" viewBox="0 0 20 20" fill="currentColor"><path d="M8 2a1 1 0 000 2h2a1 1 0 100-2H8z" /><path d="M3 5a2 2 0 012-2 3 3 0 003 3h2a3 3 0 003-3 2 2 0 012 2v6h-4.586l1.293-1.293a1 1 0 00-1.414-1.414l-3 3a1 1 0 000 1.414l3 3a1 1 0 001.414-1.414L10.414 13H15v3a2 2 0 01-2 2H5a2 2 0 01-2-2V5zM15 11h2a1 1 0 110 2h-2v-2z" /></svg>
             </button>
             <div class="divider" />
@@ -388,7 +391,6 @@ input {
 
 button {
   width: 100%;
-  background-color: #1bb238;
   padding: 9px 10px;
   border-radius: 4px;
   color: #fff;
@@ -412,14 +414,6 @@ button:active {
 
 input:focus-visible, input:focus, button:focus-visible {
   outline: 2px solid #118f2b;
-}
-
-button.button-yellow {
-  filter: hue-rotate(286deg);
-}
-
-button.button-gray {
-  filter: grayscale(1);
 }
 
 h2 {
@@ -495,19 +489,6 @@ h2 {
   margin-top: 24px;
 }
 
-.waiting-player-waiting {
-  color: #C9B458;
-}
-
-.waiting-player-ready {
-  color: #6AAA64;
-}
-
-.waiting-ready {
-  width: 100%;
-  background-color: limegreen;
-}
-
 .start-animation {
   position: fixed;
   display: flex;
@@ -562,6 +543,7 @@ h2 {
   justify-content: center;
   align-items: center;
   z-index: 50;
+  pointer-events: none;
 }
 
 .fade-scores-enter-active,

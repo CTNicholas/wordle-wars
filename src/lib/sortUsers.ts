@@ -17,6 +17,13 @@ export function sortUsers (arr: OtherUser[]) {
     if (presentSort !== 0) {
       return presentSort
     }
-    return a.rowsComplete - b.rowsComplete
+    const rowsComplete = a.rowsComplete - b.rowsComplete
+    if (rowsComplete !== 0) {
+      return rowsComplete
+    }
+    if (a.timeFinished && b.timeFinished) {
+      return a.timeFinished - b.timeFinished
+    }
+    return 0
   })
 }

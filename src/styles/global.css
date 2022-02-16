@@ -61,28 +61,133 @@ input, button {
   color: #fff !important;
 }
 
-.correct {
-  background-color: #1bb238 !important;
+.keyboard-button {
+  background-color: #d3d6da;
+  color: #1a1a1b;
 }
 
-.present {
-  background-color: #d2a207 !important;
+.dark .keyboard-button {
+  background: #71717A;
+  color: #fff;
 }
 
+/* LIGHT MODE */
+.correct,
+.ready-button,
+.ready-button:disabled,
+.ready-button:active {
+  background-color: #1bb238;
+}
+.waiting-player-ready {
+  color: #1bb238;
+}
+.ready-button:hover {
+  background-color: #26d34a;
+}
+
+.present,
+.unready-button,
+.unready-button:disabled,
+.unready-button:active {
+  background-color: #d2a207;
+}
+.waiting-player-waiting {
+  color: #d2a207;
+}
+
+
+/* DARK MODE */
+.dark .correct,
+.dark .ready-button,
+.dark .ready-button:disabled,
+.dark .ready-button:active {
+  background-color: #15a62f;
+}
+.dark .waiting-player-ready {
+  color: #15a62f;
+}
+.dark .ready-button:hover {
+  background-color: #1eb73b;
+}
+
+.dark .present,
+.dark .unready-button,
+.dark .unready-button:disabled,
+.dark .unready-button:active {
+  background-color: #be9403;
+}
+.dark .waiting-player-waiting {
+  color: #be9403;
+}
+.dark .unready-button:hover {
+  background-color: #be9403;
+}
+
+/* LIGHT COLOURBLIND MODE */
+.colourblind .correct,
+.colourblind .ready-button,
+.colourblind .ready-button:disabled,
+.colourblind .ready-button:active {
+  background-color: #8529fa;
+}
+.colourblind .waiting-player-ready {
+  color: #8529fa;
+}
+.colourblind .ready-button:hover {
+  background-color: #9243fd;
+}
+
+.colourblind .present,
+.colourblind .unready-button,
+.colourblind .unready-button:disabled,
+.colourblind .unready-button:active {
+  background-color: #04c408;
+}
+.colourblind .waiting-player-waiting {
+  color: #04c408;
+}
+.colourblind .unready-button:hover {
+  background-color: #13ee18;
+}
+
+/* DARK COLOURBLIND MODE */
+.dark.colourblind .correct,
+.dark.colourblind .ready-button,
+.dark.colourblind .ready-button:disabled,
+.dark.colourblind .ready-button:active {
+  background-color: #984bff;
+}
+.dark.colourblind .waiting-player-ready {
+  color: #984bff;
+}
+.dark.colourblind .ready-button:hover {
+  background-color: #9c5afa;
+}
+
+.dark.colourblind .present,
+.dark.colourblind .unready-button,
+.dark.colourblind .unready-button:disabled,
+.dark.colourblind .unready-button:active {
+  background-color: #04c408;
+}
+.dark.colourblind .waiting-player-waiting {
+  color: #04c408;
+}
+.dark.colourblind .unready-button:hover {
+  background-color: #13ee18;
+}
+
+/* ALL MODES */
 .absent {
   background-color: #82918b !important;
 }
 
-.dark .correct {
-  background-color: #15a62f !important;
-}
-
-.dark .present {
-  background-color: #be9403 !important;
-}
-
 .dark .absent {
   background-color: #3F3F46 !important;
+}
+
+.copy-button {
+  background-color: #898989;
 }
 
 .link {

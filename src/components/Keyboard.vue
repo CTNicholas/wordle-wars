@@ -22,7 +22,7 @@ const rows = [
       <div class="spacer" v-if="i === 1"></div>
       <button
         v-for="key in row"
-        :class="[key.length > 1 && 'big', letterStates[key]]"
+        :class="['keyboard-button', key.length > 1 && 'big', letterStates[key]]"
         @click="$emit('key', key)"
       >
         <span v-if="key !== 'Backspace'">{{ key }}</span>
@@ -61,7 +61,7 @@ const rows = [
   flex: 0.5;
 }
 
-button {
+.keyboard-button {
   font-family: inherit;
   font-weight: 600;
   border: 0;
@@ -71,8 +71,6 @@ button {
   border-radius: 4px;
   cursor: pointer;
   user-select: none;
-  background-color: #d3d6da;
-  color: #1a1a1b;
   flex: 1;
   display: flex;
   justify-content: center;
@@ -82,10 +80,7 @@ button {
   transition: all 0.2s 1.5s;
 }
 
-.dark button {
-  background: #71717A;
-  color: #fff;
-}
+
 
 button:last-of-type {
   margin: 0;
