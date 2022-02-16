@@ -226,12 +226,9 @@ header {
 }
 
 @media (max-width: 715px) {
-  button {
+  button, .button {
     padding-left: 5px;
     padding-right: 5px;
-  }
-  header {
-    padding: 0 5px;
   }
 }
 </style>
