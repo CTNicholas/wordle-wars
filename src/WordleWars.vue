@@ -8,7 +8,7 @@ import MiniBoardScore from './components/MiniBoardScore.vue'
 import MiniScores from './components/MiniScores.vue'
 import MiniBoard from './components/MiniBoard.vue'
 import Game from './components/Game.vue'
-import { useList, useOthers, usePresence } from './lib-liveblocks'
+import { useList, useOthers, useMyPresence } from './lib-liveblocks'
 import { copyTextToClipboard, copyUrlToClipboard } from './lib/copyText'
 import { getWordOfTheDay } from './lib/getWordOfTheDay'
 import { sortUsers } from './lib/sortUsers'
@@ -38,7 +38,7 @@ let emojiScore = $ref('')
 let copyLinkMessage = $ref('')
 
 // Custom Liveblocks hooks, based on the Liveblocks React library
-const [myPresence, updateMyPresence] = usePresence()
+const [myPresence, updateMyPresence] = useMyPresence()
 const others = useOthers()
 const savedScores = useList('scores-' + answer)
 

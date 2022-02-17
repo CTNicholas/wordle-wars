@@ -1,6 +1,6 @@
 <template>
   <h1>
-    Wordle <span>Wars</span>
+    Wordle Wars
   </h1>
 </template>
 

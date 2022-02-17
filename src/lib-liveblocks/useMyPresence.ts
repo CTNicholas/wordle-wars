@@ -2,7 +2,18 @@ import { inject, onUnmounted, ref, watchEffect } from 'vue'
 import { Presence, Room } from '@liveblocks/client'
 import { roomSymbol } from './symbols'
 
-export function usePresence (): [Presence|null, ((updatedPresence: any) => void)] {
+/**
+ * Works similarly to `liveblocks-react` useMyPresence
+ * https://liveblocks.io/docs/api-reference/liveblocks-react#useMyPresence
+ *
+ * The first array index uses a vue ref so make sure to use .value
+ * const [presence, updateMyPresence] = useMyPresence()
+ * console.log(presence.value)
+ *
+ * But not for updateMyPresence:
+ * updateMyPresence({ ... })
+ */
+export function useMyPresence (): [Presence|null, ((updatedPresence: any) => void)] {
   const room = inject<Room>(roomSymbol)
 
   if (!room) {
