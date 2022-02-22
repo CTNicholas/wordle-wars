@@ -11,7 +11,7 @@ import { useStorage } from './useStorage'
  * 1. It's a vue ref, so use .value
  * 2. .value must be called as a function every time
  *
- * const list = useList(useList("animals", ["🦁", "🦊", "🐵"])
+ * const list = useList("animals", ["🦁", "🦊", "🐵"])
  * console.log([...list.value()])
  * console.log(list.value().get(2))
  */

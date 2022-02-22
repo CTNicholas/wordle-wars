@@ -1,5 +1,5 @@
 <!--
-   Works similarly to `liveblocks-react` RoomProvider
+  Works similarly to `liveblocks-react` RoomProvider
   https://liveblocks.io/docs/api-reference/liveblocks-react#RoomProvider
 -->
 <script setup lang="ts">
