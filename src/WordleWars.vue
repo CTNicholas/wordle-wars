@@ -129,12 +129,12 @@ function updateGameStage (stage: GameState) {
 
 // Returns true if every user is in one of the `stages`
 function allInStages (stages: GameState[]) {
-  if (!others?.value || !others?.value.count) {
+  if (!others?.value || !others?.value.length) {
     return false
   }
   let myPresenceFound = false
   return stages.some(stage => {
-    const othersReady = others.value?.toArray().every(
+    const othersReady = others.value?.every(
       other => other.presence && other.presence.stage === stage
     )
     myPresenceFound = myPresenceFound || myPresence!.value.stage === stage

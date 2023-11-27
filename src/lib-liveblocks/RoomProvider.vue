@@ -16,7 +16,7 @@ if (!id) {
   console.error('RoomProvider requires an id')
 }
 const client: any = inject(clientSymbol)
-const room = client.enter(id, defaultPresence())
+const room = client.enter(id, { initialPresence: defaultPresence() })
 provide<Room>(roomSymbol, room)
 
 onUnmounted(() => {
